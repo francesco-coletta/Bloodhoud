@@ -61,6 +61,11 @@ curl -i -H "Accept: application/json" -d "direction=outgoing&phoneNumber=0123456
 
 
 
+
+curl --verbose -X POST 'http://localhost:1337/phones/phones-123456789012340/smss' --data @Create_sms_POST_XML.xml --header "Content-Type:text/xml" --output Create_sms_POST_XML_response.xml
+
+
+
 mobile connect to server e cerca un phone mediante il suo imei
 se non lo trova ne crea uno nuovo
 se lo trova ok
