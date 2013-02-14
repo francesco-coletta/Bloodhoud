@@ -3,6 +3,7 @@ var phone = function (){
 
 		var phoneDb = require('./phoneDb');
 
+		/*
 		var findById = function(request, response)
 		{
 			var METHOD = CLASS + ".findById: ";
@@ -12,12 +13,24 @@ var phone = function (){
 						console.log(METHOD + 'Retrieved phone: ' + JSON.stringify(phone));
 						response.send(phone);
 			});
-		};		
+		};
+		*/		
 			
 		var find = function(request, response)
 		{
 			var METHOD = CLASS + ".find: ";
+			
+			var imei = request.params.imei;
+			if (typeof imei !== "undefined")
+				{
+					findByImei(imei, response);
+				}
+			else
+				{
+					findAll(response);
+				}
 		
+			/*
 			var imei= request.query.imei;
 			if (typeof imei !== "undefined")
 				{
@@ -27,6 +40,7 @@ var phone = function (){
 				{
 					findAll(response);
 				}
+			*/
 		};
 	
 		var findByImei = function(imei, response){
@@ -92,7 +106,7 @@ var phone = function (){
 
 		//metodi pubblici
 		return {
-			findById: findById,
+			//findById: findById,
 			find: find,
 			create: create,
 			remove: remove

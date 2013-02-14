@@ -133,7 +133,7 @@ var phoneDb = function (){
 				
 		//metodi pubblici
 		return {
-			findById: findById,
+			//findById: findById,
 			findByImei: findByImei,
 			findAll: findAll,
 			create: create,
