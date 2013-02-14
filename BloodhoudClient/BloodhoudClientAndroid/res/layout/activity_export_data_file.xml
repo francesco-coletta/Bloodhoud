@@ -1,0 +1,35 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    
+    
+    <Button android:id="@+exportActivity/buttonExport" 
+        android:layout_width="wrap_content" 
+        android:layout_height="wrap_content" 
+        android:layout_marginLeft="18dp" 
+        android:layout_marginTop="21dp" 
+        android:text="@string/button_export"/>
+    
+    <Button android:id="@+exportActivity/buttonClear" 
+        android:layout_width="wrap_content" 
+        android:layout_height="wrap_content" 
+        android:layout_marginTop="15dp" 
+        android:text="@string/button_clear_logfile"/>
+    
+    <Button android:id="@+exportActivity/buttonCancel" 
+        android:layout_width="wrap_content" 
+        android:layout_height="wrap_content" 
+        android:layout_marginTop="15dp" 
+        android:text="@string/button_cancel"/>
+    
+    <TextView android:id="@+exportActivity/labelMessage" 
+        android:layout_width="wrap_content" 
+        android:layout_height="wrap_content" 
+        android:layout_marginTop="19dp" 
+        android:text="@string/label_TaskResult"/>
+    
+
+
+</LinearLayout>
