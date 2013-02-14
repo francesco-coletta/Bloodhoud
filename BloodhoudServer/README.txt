@@ -4,6 +4,9 @@ Richieste per testare i servizi RESTfull:
 http://192.168.137.129:1337/phones
 curl -i -X GET http://localhost:1337/phones
 
+cerca un phone tramite imei
+curl -i -X GET  "http://localhost:1337/phones?imei=012345678912340"
+
 - recupera u dettagli di un phone (idPhone = _id):
 http://192.168.137.129:1337/phones/phone-{idPhone}
 curl -i -X GET http://localhost:1337/phones/phone-{idPhone}
@@ -46,3 +49,19 @@ curl -i -H "Accept: application/json" -d "imei=123456789012341&name=tizio&phoneN
 DELETE
 -elimina un phone
 curl -i -X DELETE "http://localhost:1337/phones/phone-{idPhone}"
+
+
+
+
+
+
+POST
+-crea un nuovo sms
+curl -i -H "Accept: application/json" -d "direction=outgoing&phoneNumber=0123456789&timespamp=YYYY-MM-DDTHH:mm:ss.000Z&text=sms numero 1"  -X POST  "http://localhost:1337/phones/phone-{idPhone}/smss"
+
+
+
+mobile connect to server e cerca un phone mediante il suo imei
+se non lo trova ne crea uno nuovo
+se lo trova ok
+

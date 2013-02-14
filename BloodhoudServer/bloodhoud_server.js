@@ -34,12 +34,11 @@ app.configure(
 
 
 // PHONE
-//lista dei telefoni, possibile specificare una query: imei=xxxxxxxxxxxxxx
 app.get('/phones', phone.find);
+app.get('/phones/phone-:imei', phone.find);
 
 //info del generico telefono
-app.get('/phones/phone-:id', phone.findById);
-//app.get('/phones/phone-:imei', phone.findByImei);
+//app.get('/phones/phone-:id', phone.findById);
 
 
 // SMS
@@ -56,7 +55,7 @@ app.get('/phones/smss', sms.findAll);
  * - phoneNumber=1234567890
  * 
  */
-app.get('/phones/phone-:id/smss', sms.find);
+app.get('/phones/phone-:imei/smss', sms.find);
 
 
 //dettaglio di un sms di un telefono
@@ -65,10 +64,28 @@ app.get('/phones/phone-:id/smss', sms.find);
 
 
 // ADD new phone
+/*
+ * nel post vanno specificati i seguenti dati
+ * imei=123456789012341
+ * name=tizio
+ * phoneNumberSim1=0123456789
+ * phoneNumberSim2=0123456789
+*/
 app.post('/phones', phone.create);
 
 // DELETE phone
-app.delete('/phones/phone-:id', phone.remove);
+//app.delete('/phones/phone-:imei', phone.remove);
+
+
+// ADD new SMS
+/*
+ * nel post vanno specificati i seguenti dati
+ * direction=outgoing/incoming
+ * phoneNumber=0123456789
+ * timespamp=YYYY-MM-DDTHH:mm:ss.000Z (UTC)
+ * text=
+*/
+app.post('/phones/phone-:imei/smss', sms.create);
 
 
 

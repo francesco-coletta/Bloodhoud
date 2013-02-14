@@ -27,7 +27,7 @@ var smsDb = function(){
 									else
 										{
 											console.log(METHOD + "Errore:" + err);
-											var sms = { _id: 0, imei: "", direction: "", timespamp: "1970-01-01 00:00:00", phoneNumber: "", text: ""};
+											var sms = {phone_id:0, _id: 0, imei: "", direction: "", timespamp: "1970-01-01 00:00:00", phoneNumber: "", text: ""};
 											callback(err,  sms);
 										}
 									}
@@ -45,7 +45,8 @@ var smsDb = function(){
 				function(err, collectionSms)
 					{
 						collectionSms.find(
-							{'phone_id':  new BSON.ObjectID(idPhone)}, 
+							//{'phone_id':  new BSON.ObjectID(idPhone)},
+							 {'imei':  idPhone},
 							function(err, cursorSms)
 								{
 									cursorSms.toArray(
@@ -61,7 +62,7 @@ var smsDb = function(){
 												else
 													{
 														console.log(METHOD + "Errore:" + err);
-														var sms = { _id: 0, imei: "", direction: "", timespamp: "1970-01-01 00:00:00", phoneNumber: "", text: ""};
+														var sms = {phone_id:0, _id: 0, imei: "", direction: "", timespamp: "1970-01-01 00:00:00", phoneNumber: "", text: ""};
 														callback(err,  sms);
 													}
 												}
@@ -89,7 +90,8 @@ var smsDb = function(){
 					var idPhone = params.idPhone;
 					if (typeof idPhone !== 'undefined'){
 						console.log(METHOD + 'idPhone: ' + idPhone);
-						qBuilder.andEqual("phone_id", new BSON.ObjectID(idPhone));
+						//qBuilder.andEqual("phone_id", new BSON.ObjectID(idPhone));
+						qBuilder.andEqual("phone_id", idPhone);
 					}
 						
 					var day = params.day;
@@ -144,7 +146,7 @@ var smsDb = function(){
 													else
 														{
 															console.log(METHOD + "Errore:" + err);
-															var sms = { _id: 0, imei: "", direction: "", timespamp: "1970-01-01 00:00:00", phoneNumber: "", text: ""};
+															var sms = {phone_id:0, _id: 0, imei: "", direction: "", timespamp: "1970-01-01 00:00:00", phoneNumber: "", text: ""};
 															callback(err,  sms);
 														}
 													}
@@ -172,48 +174,56 @@ var smsDb = function(){
 								}
 								else{
 									console.log("Errore:" + err);
-									var sms = { idSms: 0, direction: "", timespamp: "1970-01-01 00:00:00", phoneNumber: "", text: ""}; 
+									var sms = {phone_id:0, _id: 0, imei: "", direction: "", timespamp: "1970-01-01 00:00:00", phoneNumber: "", text: ""}; 
 									callback(err, sms);
 								}
 							});
 					});
 			};
 			
+		var create= function (sms, callback)
+				{
+					var METHOD = CLASS + ".create: ";
+					console.log(METHOD + "Creating sms: " + JSON.stringify(sms));
+					
+					
+					//{ "phone_id": sms.phone_id, "direction": sms.direction, "timespamp": new Date(sms.timespamp), "phoneNumber": sms.phoneNumber, "text": sms.text},					
+					
+					database.istanceDb.collection(database.collectionNames.SMS, function(err, collection)
+						{
+							collection.insert(
+								//{ "phone_id": new BSON.ObjectID(sms.phone_id), "direction": sms.direction, "timespamp": new Date(sms.timespamp), "phoneNumber": sms.phoneNumber, "text": sms.text},
+								{ "phone_id": sms.phone_id, "direction": sms.direction, "timespamp": new Date(sms.timespamp), "phoneNumber": sms.phoneNumber, "text": sms.text},
+								function(err, result)
+									{
+										if (!err)	
+											{
+												var sms = result[0];
+												console.log(METHOD + 'Sms created: ' + JSON.stringify(sms));
+												callback(null,  sms);
+											}
+										else
+											{
+												console.log(METHOD + "Errore: " + err);
+												var sms = {phone_id: "", _id: 0, imei: "", direction: "", timespamp: "1970-01-01 00:00:00", phoneNumber: "", text: ""};
+												callback(err,  sms);
+											}
+									});
+						});
+				};			
 			
 			
 		function queryBuilder() {
 			// {author: "Mike", created_on: {$gt: start, $lt: end}}
 			
 			var query = {};
-			/*
-			query["$or"]=[];
-			query["$or"].push({"field":"value1"});
-			query["$or"].push({"field":"value2"});
-			query["date_created"]="whatever";					
-query
-{
-    "$or" : [
-        {
-            "field" : "value1"
-        },
-        {
-            "field" : "value2"
-        }
-    ],
-    "date_created" : "whatever"
-			*/
-			
 			this.andEqual = function(name, value)
 				{
-					//var condition = "'" + name + "': " +  value;
-					//concatenaNewCondition(condition);
 					query[name] = value;
 				}
 				
 			this.andInIntervalEqual= function(name, min, max)
 				{
-					//var condition = "'" + name + "': {$gt: " +  min + ", $lt: " + max + "}";
-					//concatenaNewCondition(condition);
 					var interval = {};
 					interval["$gt"] = new Date(min); 
 					interval["$lt"] = new Date(max); 
@@ -234,6 +244,7 @@ query
 				
 		};	
 	 
+
 	 
 		// from "yyyy-mm-dd" format to date
 		function getDateStart(day) {
@@ -277,8 +288,9 @@ query
 		return {
 			findAll: findAll,
 			find: find,
-			findAllByIdPhone: findAllByIdPhone,
-			findById: findById
+			//findAllByIdPhone: findAllByIdPhone,
+			//findById: findById,
+			create: create
 		}
 }();
 

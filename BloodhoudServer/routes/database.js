@@ -107,9 +107,10 @@ var database = function(){
                     												for (var i = 0; i < sms.length; i++)
                     													{
                     														console.log(METHOD + ' sms[' + i + "] = " + JSON.stringify(sms[i]));
-                    														sms[i].phone_id = phone._id;
+                    														//sms[i].phone_id = phone._id;
+                    														sms[i].phone_id = phone.imei;
                     														collectionSms.insert(
-                    														                     { "phone_id": phone._id, "direction": sms[i].direction, "timespamp": sms[i].timespamp, "phoneNumber": sms[i].phoneNumber, "text": sms[i].text},
+                    														                     { "phone_id": sms[i].phone_id, "direction": sms[i].direction, "timespamp": sms[i].timespamp, "phoneNumber": sms[i].phoneNumber, "text": sms[i].text},
                     														                     function(err, result)
                     														                     {
                     														                    	 console.log(METHOD + i + ' inserted sms: ' + JSON.stringify(sms[i]));

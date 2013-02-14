@@ -4,6 +4,7 @@ var sms = function (){
 		var smsDb = require('./smsDb');
 		var phoneDb = require('./phoneDb');
 		
+		/*
 		var findById = function(request, response)
 		{
 			var METHOD = CLASS + ".findById: ";
@@ -13,7 +14,8 @@ var sms = function (){
 						console.log(METHOD + 'Retrieved sms: ' + JSON.stringify(sms));
 						response.send(sms);
 			});
-		};		
+		};
+		*/		
 			
 
 
@@ -31,6 +33,7 @@ var sms = function (){
 				});
 			};
 
+		/*
 		var findAllByIdPhone = function(request, response)
 			{
 				var METHOD = CLASS + ".findAllByIdPhone: ";
@@ -46,6 +49,7 @@ var sms = function (){
 						response.send(sms);
 				});
 			};
+		*/
 			
 		/*
 		 * sms di un telefono che rispettano determinate condizioni
@@ -60,7 +64,8 @@ var sms = function (){
 			{
 				var METHOD = CLASS + ".find: ";
 			
-				var idPhone = request.params.id;
+				//var idPhone = request.params.id;
+				var idPhone = request.params.imei;
 				console.log(METHOD + 'Retrieve sms for phone with id: ' + idPhone);
 					
 				var day = request.query.day;
@@ -73,12 +78,16 @@ var sms = function (){
 					console.log(METHOD + 'Retrieve sms into interval: ' + JSON.stringify(interval));
 				}
 				
-				
 				var direction = request.query.direction;
-				console.log(METHOD + 'Retrieve sms with direction: ' + direction);
-
+				if (typeof direction !== 'undefined'){
+					console.log(METHOD + 'Retrieve sms with direction: ' + direction);
+				}
+				
 				var phoneNumber = request.query.phoneNumber;
-				console.log(METHOD + 'Retrieve sms from/to number: ' + phoneNumber);
+				if (typeof phoneNumber !== 'undefined'){
+					console.log(METHOD + 'Retrieve sms from/to number: ' + phoneNumber);
+				}
+				
 				
 				var params = {
 					idPhone: idPhone,
@@ -88,7 +97,6 @@ var sms = function (){
 					phoneNumber: phoneNumber
 				}
 				
-				
 				smsDb.find(
 					params,
 					function(err, sms)
@@ -96,14 +104,38 @@ var sms = function (){
 							response.send(sms);
 						}
 				);
-				
 			};		
+
+		var create = function(request, response)
+			{
+				var METHOD = CLASS + ".create: ";
+				
+				//var idPhone = request.params.id;
+				var idPhone = request.params.imei;
+				console.log(METHOD + 'Creating sms for phone with id: ' + idPhone);
+
+ 				var sms = request.body;
+				console.log(METHOD + "Creating " + JSON.stringify(sms));
+				
+				sms.phone_id = idPhone;
+				
+				smsDb.create(
+					sms, 
+					function(err, sms)
+						{
+							console.log(METHOD + "Creato nuovo sms: " + JSON.stringify(sms));
+							response.send(sms);
+						}
+				);
+			}
+
 			
 		//metodi pubblici
 		return {
 			findAll: findAll,
-			findAllByIdPhone: findAllByIdPhone,
-			find: find
+			//findAllByIdPhone: findAllByIdPhone,
+			find: find,
+			create: create
 		}
 }();
 
