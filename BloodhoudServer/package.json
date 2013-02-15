@@ -7,6 +7,6 @@
         "express":"3.x"
     },
     "scripts":{
-        "start":"bloodhound_server.js"
+        "start":"node bloodhoud_server.js"
     }
 }

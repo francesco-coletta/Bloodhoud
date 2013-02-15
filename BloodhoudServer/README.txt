@@ -62,7 +62,12 @@ curl -i -H "Accept: application/json" -d "direction=outgoing&phoneNumber=0123456
 
 
 
-curl --verbose -X POST 'http://localhost:1337/phones/phones-123456789012340/smss' --data @Create_sms_POST_XML.xml --header "Content-Type:text/xml" --output Create_sms_POST_XML_response.xml
+NB:
+il bodyParser di express non dupporto il Content-Type text/xml quindi il body del POST della chiamata sotto riportata non viene parserizzato 
+curl --verbose -X POST 'http://localhost:1337/phones/phone-123456789012340/smss' --data @Create_sms_POST_XML.xml --header "Content-Type:text/xml" --output Create_sms_POST_XML_response.xml
+
+
+curl --verbose -X POST 'http://localhost:1337/phones/phone-123456789012340/smss' --data @Create_sms_POST_JSON.xml --header "Content-Type:application/json"
 
 
 

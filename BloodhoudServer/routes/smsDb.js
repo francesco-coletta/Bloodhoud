@@ -186,14 +186,21 @@ var smsDb = function(){
 					var METHOD = CLASS + ".create: ";
 					console.log(METHOD + "Creating sms: " + JSON.stringify(sms));
 					
-					
-					//{ "phone_id": sms.phone_id, "direction": sms.direction, "timespamp": new Date(sms.timespamp), "phoneNumber": sms.phoneNumber, "text": sms.text},					
+					console.log(METHOD + "Timestamp: " + sms.timestamp);
+					console.log(METHOD + "Timestamp date: " + new Date(sms.timestamp));
+					console.log(METHOD + "Timestamp date UTC: " + convertDateToUTC(new Date(sms.timestamp)));
 					
 					database.istanceDb.collection(database.collectionNames.SMS, function(err, collection)
 						{
 							collection.insert(
 								//{ "phone_id": new BSON.ObjectID(sms.phone_id), "direction": sms.direction, "timespamp": new Date(sms.timespamp), "phoneNumber": sms.phoneNumber, "text": sms.text},
-								{ "phone_id": sms.phone_id, "direction": sms.direction, "timespamp": new Date(sms.timespamp), "phoneNumber": sms.phoneNumber, "text": sms.text},
+								{ "phone_id": sms.phone_id,
+									"direction": sms.direction, 
+									"timestamp": new Date(sms.timestamp), 
+									"phoneNumber": sms.phoneNumber, 
+									"text": sms.text,
+									"timeRecord": (new Date()).toISOString()
+								},
 								function(err, result)
 									{
 										if (!err)	
@@ -205,7 +212,7 @@ var smsDb = function(){
 										else
 											{
 												console.log(METHOD + "Errore: " + err);
-												var sms = {phone_id: "", _id: 0, imei: "", direction: "", timespamp: "1970-01-01 00:00:00", phoneNumber: "", text: ""};
+												var sms = {phone_id: "", _id: 0, imei: "", direction: "", timestamp: "1970-01-01 00:00:00", phoneNumber: "", text: ""};
 												callback(err,  sms);
 											}
 									});
@@ -281,7 +288,9 @@ var smsDb = function(){
 			return interval;
 		}		 
 		
-		
+		function convertDateToUTC(date) { 
+			return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()); 
+		}		
 		
 
 		//metodi pubblici

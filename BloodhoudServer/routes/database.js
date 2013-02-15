@@ -80,11 +80,11 @@ var database = function(){
 			{
 				var METHOD = CLASS + ".populateSmssCollection: ";
 				var sms = [
-			    			{ phone_id: null, direction: "outgoing", timespamp: new Date(Date.UTC(2013, 0, 20, 18, 15, 29, 0)), phoneNumber: "1111111111", text: "sms a 1111111111"},
-			    			{ phone_id: null, direction: "incoming", timespamp: new Date(Date.UTC(2013, 0, 20, 20, 20, 29, 0)), phoneNumber: "1111111111", text: "sms da 1111111111"},
-			    			{ phone_id: null, direction: "outgoing", timespamp: new Date(Date.UTC(2013, 0, 24, 20, 20, 29, 0)), phoneNumber: "2222222222", text: "sms a 22222222"},
-			    			{ phone_id: null, direction: "incoming", timespamp: new Date(Date.UTC(2013, 0, 25, 10, 15, 29, 0)), phoneNumber: "2222222222", text: "sms da 222222"},
-			    			{ phone_id: null, direction: "outgoing", timespamp: new Date(Date.UTC(2013, 0, 27, 27, 38, 29, 0)), phoneNumber: "1111111111", text: "sms a 1111111111"}
+			    			{ phone_id: null, direction: "outgoing", timestamp: new Date(Date.UTC(2013, 0, 20, 18, 15, 29, 0)), phoneNumber: "1111111111", text: "sms a 1111111111", timeRecord: new Date(Date.UTC(2013, 0, 20, 18, 15, 29, 0))},
+			    			{ phone_id: null, direction: "incoming", timestamp: new Date(Date.UTC(2013, 0, 20, 20, 20, 29, 0)), phoneNumber: "1111111111", text: "sms da 1111111111", timeRecord: new Date(Date.UTC(2013, 0, 20, 18, 15, 29, 0))},
+			    			{ phone_id: null, direction: "outgoing", timestamp: new Date(Date.UTC(2013, 0, 24, 20, 20, 29, 0)), phoneNumber: "2222222222", text: "sms a 22222222", timeRecord: new Date(Date.UTC(2013, 0, 20, 18, 15, 29, 0))},
+			    			{ phone_id: null, direction: "incoming", timestamp: new Date(Date.UTC(2013, 0, 25, 10, 15, 29, 0)), phoneNumber: "2222222222", text: "sms da 222222", timeRecord: new Date(Date.UTC(2013, 0, 20, 18, 15, 29, 0))},
+			    			{ phone_id: null, direction: "outgoing", timestamp: new Date(Date.UTC(2013, 0, 27, 27, 38, 29, 0)), phoneNumber: "1111111111", text: "sms a 1111111111", timeRecord: new Date(Date.UTC(2013, 0, 20, 18, 15, 29, 0))}
 			    			];
 				db.collection(
 				              collectionNames.SMS, 
@@ -110,7 +110,7 @@ var database = function(){
                     														//sms[i].phone_id = phone._id;
                     														sms[i].phone_id = phone.imei;
                     														collectionSms.insert(
-                    														                     { "phone_id": sms[i].phone_id, "direction": sms[i].direction, "timespamp": sms[i].timespamp, "phoneNumber": sms[i].phoneNumber, "text": sms[i].text},
+                    														                     { "phone_id": sms[i].phone_id, "direction": sms[i].direction, "timestamp": sms[i].timestamp, "phoneNumber": sms[i].phoneNumber, "text": sms[i].text,  "timeRecord": sms[i]. timeRecord},
                     														                     function(err, result)
                     														                     {
                     														                    	 console.log(METHOD + i + ' inserted sms: ' + JSON.stringify(sms[i]));
