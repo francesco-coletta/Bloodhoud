@@ -1,7 +1,13 @@
-package it.cf.bloodhoud.client.android;
+package it.cf.bloodhoud.client.android.receiver;
 
 
-import it.cf.bloodhoud.client.android.Call.CallDirection;
+import it.cf.bloodhoud.client.android.model.Call;
+import it.cf.bloodhoud.client.android.model.CallFactory;
+import it.cf.bloodhoud.client.android.model.ContactManager;
+import it.cf.bloodhoud.client.android.model.Call.CallDirection;
+import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalWrite;
+import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalFile;
+import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalSQLLite;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -53,8 +59,9 @@ public class IncomingOutgoingCallListener
 
 						try
 							{
-								Repository repoSms = new RepositoryFile(context);
-								repoSms.writeCall(call);
+								//RepositoryLocal repo = new RepositoryLocalFile(context);
+								RepositoryLocalSQLLite repo = new RepositoryLocalSQLLite(context);
+								repo.writeCall(call);
 							}
 						catch (Exception e)
 							{

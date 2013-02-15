@@ -1,4 +1,4 @@
-package it.cf.bloodhoud.client.android;
+package it.cf.bloodhoud.client.android.model;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -7,6 +7,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import android.content.Context;
+
+import android.os.Build;
+import android.telephony.TelephonyManager;
 
 public class Utils
 	{
@@ -68,5 +72,8 @@ public class Utils
 				in.close();
 				out.close();
 			}
+		
+		
+
 
 	}

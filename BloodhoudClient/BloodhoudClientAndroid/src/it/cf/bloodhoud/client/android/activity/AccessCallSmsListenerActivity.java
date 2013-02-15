@@ -1,7 +1,7 @@
 package it.cf.bloodhoud.client.android.activity;
 
-import it.cf.bloodhoud.client.android.InitApp;
 import it.cf.bloodhoud.client.android.R;
+import it.cf.bloodhoud.client.android.receiver.InitApp;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -11,7 +11,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -44,13 +46,13 @@ public class AccessCallSmsListenerActivity
 		public void onClick(View v)
 			{
 				LOG.debug("Chiave della view {}", v.getId());
-
+				
 				if (v.getId() == R.loginActvity.buttonOk)
 					{
 						LOG.debug("Cliccato sul button OK");
 						if (isTypedPasswordCorrect(v))
 							{
-								this.startActivity(new Intent(this, ExportDataFileActivity.class));
+								this.startActivity(new Intent(this, ExportDataActivity.class));
 								this.finish();
 							}
 						else

@@ -1,12 +1,13 @@
-package it.cf.bloodhoud.client.android;
+package it.cf.bloodhoud.client.android.model;
 
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import it.cf.bloodhoud.client.android.Call;
-import it.cf.bloodhoud.client.android.Call.CallDirection;
-import it.cf.bloodhoud.client.android.Call.CallState;
+import it.cf.bloodhoud.client.android.model.Call.CallDirection;
+import it.cf.bloodhoud.client.android.model.Call.CallState;
+import it.cf.bloodhoud.client.android.model.Sms.SmsDirection;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -29,6 +30,35 @@ public class CallFactory
 				return singleton;
 			}
 		
+		
+		public Call call(String phoneNumber, String nameContact,
+				long timestampStartCall, long timestampEndCall,
+				CallDirection direction, CallState state) throws Exception
+		{
+			Call call;
+			switch (direction)
+			{
+			case OUTGOING:
+				call = new OutgoingCall(phoneNumber, nameContact, timestampStartCall, timestampEndCall, direction, state);
+				break;
+			case INCOMING:
+				call = new IncomingCall(phoneNumber, nameContact, timestampStartCall, timestampEndCall, direction, state);
+				break;
+			default:
+				throw new Exception("La direzione deve essere incoming o outgoing");
+			}
+			return call;
+		}
+		
+		public Call call(String phoneNumber, String nameContact,
+				long timestampStartCall, long timestampEndCall,
+				String direction, String state) throws Exception
+		{
+			CallDirection callDir = getCallDirection(direction);
+			CallState callState = getCallState(state);
+			
+			return call(phoneNumber, nameContact, timestampStartCall, timestampEndCall, callDir, callState);
+		}		
 
 		public Call createNewCall(CallDirection direction, Intent intent) throws Exception
 			{
@@ -144,5 +174,30 @@ public class CallFactory
 					}
 				return phoneNumber;
 			}
+		
+		private CallDirection getCallDirection(String callDirection){
+			CallDirection dir = CallDirection.INCOMING;
+			if (StringUtils.equalsIgnoreCase(callDirection, CallDirection.OUTGOING.name())){
+				dir= CallDirection.OUTGOING;
+			}
+			return dir;
+		}		
+		
+		private CallState getCallState(String callState){
+			CallState state = CallState.ACCEPTED;
+			if (StringUtils.equalsIgnoreCase(callState, CallState.FINISHED.name())){
+				state = CallState.FINISHED;
+			}
+			else if (StringUtils.equalsIgnoreCase(callState, CallState.REFUSED.name())){
+				state = CallState.REFUSED;
+			}
+			else if (StringUtils.equalsIgnoreCase(callState, CallState.RINGING.name())){
+				state = CallState.RINGING;
+			}
+			else if (StringUtils.equalsIgnoreCase(callState, CallState.UNKNOW.name())){
+				state = CallState.UNKNOW;
+			}
+			return state;
+		}
 
 	}

@@ -1,16 +1,28 @@
-package it.cf.bloodhoud.client.android;
+package it.cf.bloodhoud.client.android.model;
+
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.simpleframework.xml.Attribute;
+import org.simpleframework.xml.Element;
+import org.simpleframework.xml.Root;
 
+@Root
 public class Sms
 	{
 
+		@Element
 		private final String phoneNumber;
+		@Element
 		private String nameContact = "UNKNOWN";
+		@Attribute
 		private final long timestamp;
+		@Attribute
+		private final String timestampFormatted;
+		@Element
 		private final String text;
+		@Element
 		private final SmsDirection direction;
 
 		public enum SmsDirection
@@ -26,6 +38,7 @@ public class Sms
 				this.timestamp = timestamp;
 				this.text = StringUtils.trimToEmpty(text);
 				this.direction = directionType;
+				this.timestampFormatted = Utils.formatDatetime(timestamp);
 			}
 
 		public String getPhoneNumber()
@@ -37,6 +50,10 @@ public class Sms
 			{
 				return timestamp;
 			}
+		
+		public String getTimestampFormatted(){
+			return this.timestampFormatted ;
+		}
 
 		public String getText()
 			{

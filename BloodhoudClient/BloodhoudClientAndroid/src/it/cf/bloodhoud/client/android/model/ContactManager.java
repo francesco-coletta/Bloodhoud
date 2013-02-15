@@ -1,4 +1,4 @@
-package it.cf.bloodhoud.client.android;
+package it.cf.bloodhoud.client.android.model;
 
 import java.util.ArrayList;
 import java.util.List;

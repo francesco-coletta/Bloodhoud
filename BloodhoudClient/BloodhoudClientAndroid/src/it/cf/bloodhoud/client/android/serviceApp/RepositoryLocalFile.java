@@ -1,4 +1,9 @@
-package it.cf.bloodhoud.client.android;
+package it.cf.bloodhoud.client.android.serviceApp;
+
+import it.cf.bloodhoud.client.android.model.Call;
+import it.cf.bloodhoud.client.android.model.Phone;
+import it.cf.bloodhoud.client.android.model.Sms;
+import it.cf.bloodhoud.client.android.model.Utils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -12,10 +17,10 @@ import org.slf4j.LoggerFactory;
 import android.content.Context;
 import android.text.format.DateFormat;
 
-public class RepositoryFile
-        implements Repository
+public class RepositoryLocalFile
+        implements RepositoryLocalWrite
 	{
-		static private final Logger LOG = LoggerFactory.getLogger(RepositoryFile.class);
+		static private final Logger LOG = LoggerFactory.getLogger(RepositoryLocalFile.class);
 
 		public static final String FILE_NAME = "SmsCallLog";
 		private static final int MAX_SIZE_FILE_BYTE = 1 * 1024 * 1024; // 1MB
@@ -23,7 +28,7 @@ public class RepositoryFile
 
 		private final Context context;
 
-		public RepositoryFile(Context context)
+		public RepositoryLocalFile(Context context)
 		        throws Exception
 			{
 				super();
@@ -36,6 +41,13 @@ public class RepositoryFile
 				LOG.debug("Max dimension allowed for data file <{}> is {} [B]", FILE_NAME, MAX_SIZE_FILE_BYTE);
 			}
 
+
+		@Override
+		public void writePhone(Phone phone) {
+			// TODO Auto-generated method stub
+			LOG.debug("TODO: to be implemented");
+		}		
+		
 		@Override
 		public void writeSms(Sms sms)
 			{
@@ -213,4 +225,7 @@ public class RepositoryFile
 				LOG.debug("Dimensioni file <{}> = {}", filename, file.length());
 				return (!file.exists()) || (file.length() < MAX_SIZE_FILE_BYTE);
 			}
+
+
+
 	}

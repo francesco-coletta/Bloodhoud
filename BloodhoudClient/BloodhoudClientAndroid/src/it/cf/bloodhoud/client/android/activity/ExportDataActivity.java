@@ -2,30 +2,43 @@ package it.cf.bloodhoud.client.android.activity;
 
 
 import it.cf.bloodhoud.client.android.R;
-import it.cf.bloodhoud.client.android.Utils;
+import it.cf.bloodhoud.client.android.model.Call;
+import it.cf.bloodhoud.client.android.model.Sms;
+import it.cf.bloodhoud.client.android.model.Utils;
+import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalRead;
+import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalSQLLite;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 
+import org.simpleframework.xml.Serializer;
+import org.simpleframework.xml.core.Persister;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class ExportDataFileActivity
+public class ExportDataActivity
         extends Activity
         implements OnClickListener
 	{
-		static private final Logger LOG = LoggerFactory.getLogger(ExportDataFileActivity.class);
+		static private final Logger LOG = LoggerFactory.getLogger(ExportDataActivity.class);
+		
+		static private final String FILE_NAME_SMS = "sms.xml";
+		static private final String FILE_NAME_CALL = "call.xml";
 
 		@Override
 		protected void onCreate(Bundle savedInstanceState)
@@ -87,7 +100,8 @@ public class ExportDataFileActivity
 						if (isExternalStorageAvailableAndWriteable())
 							{
 								cleanChacheDirIntoExternalStorage();
-								copyDataFileIntoExternalStorage();
+								exportDataFromDbToXmlFile();
+								copyDataIntoExternalStorage();
 
 								messaggio = "Export eseguito";
 							}
@@ -101,7 +115,6 @@ public class ExportDataFileActivity
 						toast.show();
 
 						TextView messaggioEsitoTask = (TextView) findViewById(R.exportActivity.labelMessage);
-
 						messaggioEsitoTask.setText(messaggio);
 						return null;
 					}
@@ -117,7 +130,59 @@ public class ExportDataFileActivity
 						LOG.debug("Eliminati {} file", files.length);
 					}
 
-				private void copyDataFileIntoExternalStorage()
+				private void exportDataFromDbToXmlFile()
+				{
+					exportSmsFromDbToXmlFile();
+					exportCallFromDbToXmlFile();
+				}				
+				
+				private void exportCallFromDbToXmlFile() {
+					RepositoryLocalRead repo = new RepositoryLocalSQLLite(context);
+					List<Call> calls = repo.getCall();
+					LOG.debug("Nel db sono presenti {} call", calls.size());
+					
+					FileOutputStream callOutputStream = null;
+					try
+						{
+							callOutputStream = context.openFileOutput(FILE_NAME_CALL, Context.MODE_PRIVATE);
+							Serializer serializer = new Persister(); 
+							for (Call call : calls) {
+								//LOG.debug("Export call {}", call.toString());
+								serializer.write(call, callOutputStream);
+							}
+							callOutputStream.close();
+						}
+					catch (Exception e)
+						{
+							LOG.error(e.getMessage());
+						}
+					LOG.debug("Sono stati esportate tutte le call");
+				}
+
+				private void exportSmsFromDbToXmlFile() {
+					RepositoryLocalRead repo = new RepositoryLocalSQLLite(context);
+					List<Sms> smss = repo.getSms();
+					LOG.debug("Nel db sono presenti {} sms", smss.size());
+					
+					FileOutputStream smsOutputStream = null;
+					try
+						{
+							smsOutputStream = context.openFileOutput(FILE_NAME_SMS, Context.MODE_PRIVATE);
+							Serializer serializer = new Persister(); 
+							for (Sms sms : smss) {
+								//LOG.debug("Export sms {}", sms.toString());
+								serializer.write(sms, smsOutputStream);
+							}
+							smsOutputStream.close();
+						}
+					catch (Exception e)
+						{
+							LOG.error(e.getMessage());
+						}
+					LOG.debug("Sono stati esportai gli sms");
+				}
+
+				private void copyDataIntoExternalStorage()
 					{
 						try
 							{

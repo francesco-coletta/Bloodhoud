@@ -1,7 +1,9 @@
-package it.cf.bloodhoud.client.android;
+package it.cf.bloodhoud.client.android.model;
 
-import it.cf.bloodhoud.client.android.Sms.SmsDirection;
+import it.cf.bloodhoud.client.android.model.Sms.SmsDirection;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +13,21 @@ public class SmsFactory
 	{
 		static private final Logger LOG = LoggerFactory.getLogger(SmsFactory.class);
 
+		static public Sms sms(SmsDirection direction, String phoneNumber, long timestamp, String text)
+		{
+			return new Sms(direction, StringUtils.trimToEmpty(phoneNumber), timestamp, StringUtils.trimToEmpty(text));
+		}
+		
+		static public Sms sms(String direction, String phoneNumber, long timestamp, String text)
+		{
+			SmsDirection dir = Sms.SmsDirection.Incoming;
+			if (StringUtils.equalsIgnoreCase(direction, Sms.SmsDirection.Outgoing.name())){
+				dir = Sms.SmsDirection.Outgoing;
+			}
+			return new Sms(dir, StringUtils.trimToEmpty(phoneNumber), timestamp, StringUtils.trimToEmpty(text));
+		}
+		
+		
 		static public Sms newIncomingSmsFromSmsMessage(SmsMessage smsMessage)
 			{
 				Sms sms;

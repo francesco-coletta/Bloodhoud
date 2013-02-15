@@ -1,4 +1,5 @@
-package it.cf.bloodhoud.client.android;
+package it.cf.bloodhoud.client.android.model;
+
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,17 @@ public class IncomingCall
 				this.setState(CallState.RINGING);
 				LOG.debug("Incoming call created <ringing>");
 			}
+		
+		
+		
+		public IncomingCall(String phoneNumber, String nameContact,
+				long timestampStartCall, long timestampEndCall,
+				CallDirection direction, CallState state) {
+			super(phoneNumber, nameContact, timestampStartCall, timestampEndCall,
+					direction, state);
+		}
+
+
 
 		public void refused()
 			{

