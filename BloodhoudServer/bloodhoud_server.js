@@ -20,6 +20,7 @@ var express = require('express');
 var phone = require('./routes/phone');
 var sms = require('./routes/sms');
 var call = require('./routes/call');
+var database = require('./routes/database');
 
 // crea una applicazione
 var app = express();
@@ -32,6 +33,10 @@ app.configure(
 	}
 );
 
+//PURGE DATABASE
+app.delete('/database', database.purgeDatabase);
+//RELOAD TEST DATA INTO COLLECTION
+app.post('/database', database.loadTestData);
 
 // PHONE
 app.get('/phones', phone.find);
@@ -43,7 +48,7 @@ app.get('/phones/phone-:imei', phone.find);
 
 // SMS
 //tutti gli sms
-app.get('/phones/smss', sms.findAll);
+app.get('/phones/sms', sms.findAll);
 
 
 /*
@@ -55,11 +60,28 @@ app.get('/phones/smss', sms.findAll);
  * - phoneNumber=1234567890
  * 
  */
-app.get('/phones/phone-:imei/smss', sms.find);
+app.get('/phones/phone-:imei/sms', sms.find);
 
 
 //dettaglio di un sms di un telefono
 //app.get('/phones/phone-:id/smss/sms-:idSms', sms.findById);
+
+
+// CALL
+//tutti gli call
+app.get('/phones/call', call.findAll);
+
+
+/*
+ * call di un telefono che rispettano determinate condizioni
+ * I parametri della query string possono essere:
+ * - day=yyyy-mm-dd
+ * - interval[start]=yyyy-mm-dd&interval[end]=yyyy-mm-dd
+ * - direction=outgoing/incoming
+ * - phoneNumber=1234567890
+ * 
+ */
+app.get('/phones/phone-:imei/call', call.find);
 
 
 
@@ -85,8 +107,21 @@ app.post('/phones', phone.create);
  * timespamp=YYYY-MM-DDTHH:mm:ss.000Z (UTC)
  * text=
 */
-app.post('/phones/phone-:imei/smss', sms.create);
+app.post('/phones/phone-:imei/sms', sms.create);
 
+// ADD new CALL
+/*
+ * nel post vanno specificati i seguenti dati
+ * direction=outgoing/incoming
+ * phoneNumber=0123456789 
+ * timestampStart=YYYY-MM-DDTHH:mm:ss.000Z (UTC)  
+ * timestampEnd=YYYY-MM-DDTHH:mm:ss.000Z (UTC) 
+ * phoneNumber=xxxx
+ * nameContact=xxxx
+ * state=xxxx
+ * duration=xx
+*/
+app.post('/phones/phone-:imei/call', call.create);
 
 
 var INADDR_ANY = '0.0.0.0';

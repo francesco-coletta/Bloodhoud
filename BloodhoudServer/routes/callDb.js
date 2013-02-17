@@ -1,5 +1,5 @@
-var smsDb = function(){
-	var CLASS = "smsDb";
+var callDb = function(){
+	var CLASS = "callDb";
 	
 	var database = require('./database');
 	var phoneDb = require('./phoneDb');
@@ -9,26 +9,25 @@ var smsDb = function(){
 	var findAll = function(callback)
     	{
     		var METHOD = CLASS + ".findAll: ";
-			console.log(METHOD + 'Retrieving all sms');
+			console.log(METHOD + 'Retrieving all call');
 			database.istanceDb.collection(
-				database.collectionNames.SMS, 
-				function(err, collectionSms)
+				database.collectionNames.CALL, 
+				function(err, collectionCall)
 					{
-						collectionSms.find().toArray(
-							function(err, sms)
+						collectionCall.find().toArray(
+							function(err, call)
 								{
 									console.log(METHOD + "err: " + err);
 									if (!err)
 										{
-											console.log(METHOD + "Retrieved nun sms: " + sms.length);
-											//console.log(METHOD + "Retrieved sms: " + JSON.stringify(sms));
-											callback(null,  sms);
+											console.log(METHOD + "Retrieved nun call: " + call.length);
+											callback(null, call);
 										}
 									else
 										{
 											console.log(METHOD + "Errore:" + err);
-											var sms = {phone_id:0, _id: 0, imei: "", direction: "", timespamp: "1970-01-01 00:00:00", phoneNumber: "", text: ""};
-											callback(err,  sms);
+											var call = { phone_id: 0, _id: 0, direction: "outgoing", timestampStart: "1970-01-01 00:00:00", timestampEnd: "1970-01-01 00:00:00", phoneNumber: "", nameContact: "", state: "", duration: "0", timeRecord: "1970-01-01 00:00:00"};
+											callback(err,  call);
 										}
 									}
 						);
@@ -41,29 +40,27 @@ var smsDb = function(){
     		var METHOD = CLASS + ".findAllByIdPhone: ";
 			console.log(METHOD + 'Retrieving all sms for phone with id: ' + idPhone);
 			database.istanceDb.collection(
-				database.collectionNames.SMS, 
-				function(err, collectionSms)
+				database.collectionNames.CALL, 
+				function(err, collectionCall)
 					{
 						collectionSms.find(
-							//{'phone_id':  new BSON.ObjectID(idPhone)},
 							 {'imei':  idPhone},
-							function(err, cursorSms)
+							function(err, cursorCall)
 								{
-									cursorSms.toArray(
-										function(err, sms)
+									cursorCall.toArray(
+										function(err, call)
 											{
 												console.log(METHOD + "err: " + err);
 												if (!err)
 													{
-														console.log(METHOD + "Retrieved nun sms: " + sms.length);
-														//console.log(METHOD + "Retrieved sms: " + JSON.stringify(sms));
-														callback(null,  sms);
+														console.log(METHOD + "Retrieved nun call: " + call.length);
+														callback(null,  call);
 													}
 												else
 													{
 														console.log(METHOD + "Errore:" + err);
-														var sms = {phone_id:0, _id: 0, imei: "", direction: "", timespamp: "1970-01-01 00:00:00", phoneNumber: "", text: ""};
-														callback(err,  sms);
+														var call = { phone_id: 0, _id: 0, direction: "outgoing", timestampStart: "1970-01-01 00:00:00", timestampEnd: "1970-01-01 00:00:00", phoneNumber: "", nameContact: "", state: "", duration: "0", timeRecord: "1970-01-01 00:00:00"};
+														callback(err,  call);
 													}
 												}
 										);
@@ -74,8 +71,8 @@ var smsDb = function(){
     	}
 
 		/*
-		* 
-		*/
+		 * 
+		 */
 	 	var find = function(params, callback)
 	    	{
 	    		var METHOD = CLASS + ".find: ";
@@ -90,7 +87,8 @@ var smsDb = function(){
 					var idPhone = params.idPhone;
 					if (typeof idPhone !== 'undefined'){
 						console.log(METHOD + 'idPhone: ' + idPhone);
-						//qBuilder.andEqual("phone_id", new BSON.ObjectID(idPhone));
+						// qBuilder.andEqual("phone_id", new
+						// BSON.ObjectID(idPhone));
 						qBuilder.andEqual("phone_id", idPhone);
 					}
 						
@@ -126,28 +124,31 @@ var smsDb = function(){
 				}
 				
 				database.istanceDb.collection(
-					database.collectionNames.SMS, 
-					function(err, collectionSms)
+					database.collectionNames.CALL, 
+					function(err, collectionCall)
 						{
-							collectionSms.find(
+							collectionCall.find(
 								qBuilder.query(),
-								function(err, cursorSms)
+								function(err, cursorCall)
 									{
-										cursorSms.toArray(
-											function(err, sms)
+										cursorCall.toArray(
+											function(err, call)
 												{
 													console.log(METHOD + "err: " + err);
 													if (!err)
 														{
-															console.log(METHOD + "Retrieved nun sms: " + sms.length);
-															//console.log(METHOD + "Retrieved sms: " + JSON.stringify(sms));
-															callback(null,  sms);
+															console.log(METHOD + "Retrieved nun call: " + call.length);
+															// console.log(METHOD
+															// + "Retrieved sms:
+															// " +
+															// JSON.stringify(sms));
+															callback(null,  call);
 														}
 													else
 														{
 															console.log(METHOD + "Errore:" + err);
-															var sms = {phone_id:0, _id: 0, imei: "", direction: "", timespamp: "1970-01-01 00:00:00", phoneNumber: "", text: ""};
-															callback(err,  sms);
+															var call = { phone_id: 0, _id: 0, direction: "outgoing", timestampStart: "1970-01-01 00:00:00", timestampEnd: "1970-01-01 00:00:00", phoneNumber: "", nameContact: "", state: "", duration: "0", timeRecord: "1970-01-01 00:00:00"};
+															callback(err,  call);
 														}
 													}
 											);
@@ -157,64 +158,61 @@ var smsDb = function(){
 				);    
 				/*
 				*/			
-	    	}
+	    	};
 	 
 		var findById = function(id, callback)
 			{
 				var METHOD = CLASS + ".findById: ";
 				
-				console.log(METHOD + 'Retrieving sms by id: ' + id);
-				database.istanceDb.collection( database.collectionNames.SMS, function(err, collection)
+				console.log(METHOD + 'Retrieving call by id: ' + id);
+				database.istanceDb.collection( database.collectionNames.CALL, function(err, collection)
 					{
 						collection.findOne(
-							{ '_id': new BSON.ObjectID(id) }, function(err, sms)
+							{ '_id': new BSON.ObjectID(id) }, function(err, call)
 							{
 								if (!err){
-									callback(null, sms);
+									callback(null, call);
 								}
 								else{
 									console.log("Errore:" + err);
-									var sms = {phone_id:0, _id: 0, imei: "", direction: "", timespamp: "1970-01-01 00:00:00", phoneNumber: "", text: ""}; 
-									callback(err, sms);
+									var call = { phone_id: 0, _id: 0, direction: "outgoing", timestampStart: "1970-01-01 00:00:00", timestampEnd: "1970-01-01 00:00:00", phoneNumber: "", nameContact: "", state: "", duration: "0", timeRecord: "1970-01-01 00:00:00"}; 
+									callback(err, call);
 								}
 							});
 					});
 			};
 			
-		var create= function (sms, callback)
+		var create = function (call, callback)
 				{
 					var METHOD = CLASS + ".create: ";
-					console.log(METHOD + "Creating sms: " + JSON.stringify(sms));
+					console.log(METHOD + "Creating call: " + JSON.stringify(call));
 					
-					console.log(METHOD + "Timestamp: " + sms.timestamp);
-					console.log(METHOD + "Timestamp date: " + new Date(sms.timestamp));
-					console.log(METHOD + "Timestamp date UTC: " + convertDateToUTC(new Date(sms.timestamp)));
-					
-					database.istanceDb.collection(database.collectionNames.SMS, function(err, collection)
+					database.istanceDb.collection(database.collectionNames.CALL, function(err, collection)
 						{
 							collection.insert(
-								//{ "phone_id": new BSON.ObjectID(sms.phone_id), "direction": sms.direction, "timespamp": new Date(sms.timespamp), "phoneNumber": sms.phoneNumber, "text": sms.text},
-								{ "phone_id": sms.phone_id,
-									"direction": sms.direction, 
-									"timestamp": new Date(sms.timestamp), 
-									"phoneNumber": sms.phoneNumber, 
-									"nameContact": sms.nameContact,
-									"text": sms.text,
+								{ "phone_id": call.phone_id,
+									"direction": call.direction, 
+									"timestampStart": new Date(call.timestampStart), 
+									"timestampEnd": new Date(call.timestampEnd), 
+									"phoneNumber": call.phoneNumber, 
+									"nameContact": call.nameContact,
+									"state": call.state,
+									"duration": call.duration,
 									"timeRecord": (new Date()).toISOString()
 								},
 								function(err, result)
 									{
 										if (!err)	
 											{
-												var sms = result[0];
-												console.log(METHOD + 'Sms created: ' + JSON.stringify(sms));
-												callback(null,  sms);
+												var call = result[0];
+												console.log(METHOD + 'Call created: ' + JSON.stringify(call));
+												callback(null,  call);
 											}
 										else
 											{
 												console.log(METHOD + "Errore: " + err);
-												var sms = {phone_id: "", _id: 0, imei: "", direction: "", timestamp: "1970-01-01 00:00:00", phoneNumber: "", text: ""};
-												callback(err,  sms);
+												var call = { phone_id: 0, _id: 0, direction: "outgoing", timestampStart: "1970-01-01 00:00:00", timestampEnd: "1970-01-01 00:00:00", phoneNumber: "", nameContact: "", state: "", duration: "0", timeRecord: "1970-01-01 00:00:00"};
+												callback(err,  call);
 											}
 									});
 						});
@@ -257,19 +255,26 @@ var smsDb = function(){
 		// from "yyyy-mm-dd" format to date
 		function getDateStart(day) {
 			var parts = day.match(/(\d+)/g);
-			// new Date(year, month [, date [, hours[, minutes[, seconds[, ms]]]]])
-			return  Date.UTC(parts[0], parts[1]-1, parts[2], 0, 0, 0, 0); // months are 0-based
+			// new Date(year, month [, date [, hours[, minutes[, seconds[,
+			// ms]]]]])
+			return  Date.UTC(parts[0], parts[1]-1, parts[2], 0, 0, 0, 0); // months
+																			// are
+																			// 0-based
 		}		 
 
-		// from "yyyy-mm-dd" format to date "yyyy-mm-ddT23:59:59.000T"  
+		// from "yyyy-mm-dd" format to date "yyyy-mm-ddT23:59:59.000T"
 		function getDateEnd(day) {
 			var parts = day.match(/(\d+)/g);
-			// new Date(year, month [, date [, hours[, minutes[, seconds[, ms]]]]])
-			return  Date.UTC(parts[0], parts[1]-1, parts[2], 23, 59, 59, 999); // months are 0-based
+			// new Date(year, month [, date [, hours[, minutes[, seconds[,
+			// ms]]]]])
+			return  Date.UTC(parts[0], parts[1]-1, parts[2], 23, 59, 59, 999); // months
+																				// are
+																				// 0-based
 		}		 
 
 		
-		// parse a date in yyyy-mm-dd format and return interval [yyyy-mm-dd 00:00:01, yyyy-mm-dd 23:59:59]
+		// parse a date in yyyy-mm-dd format and return interval [yyyy-mm-dd
+		// 00:00:01, yyyy-mm-dd 23:59:59]
 		function getIntervalOfSingleDay(day) {
 			var interval = 
 				{
@@ -279,7 +284,8 @@ var smsDb = function(){
 			return interval;
 		}		 
 		
-		// parse a date in yyyy-mm-dd format and return interval [yyyy-mm-dd 00:00:01, yyyy-mm-dd 23:59:59]
+		// parse a date in yyyy-mm-dd format and return interval [yyyy-mm-dd
+		// 00:00:01, yyyy-mm-dd 23:59:59]
 		function getIntervalOfIntervalDay(startDay, endDay) {
 			var interval = 
 				{
@@ -294,17 +300,15 @@ var smsDb = function(){
 		}		
 		
 
-		//metodi pubblici
+		// metodi pubblici
 		return {
 			findAll: findAll,
 			find: find,
-			//findAllByIdPhone: findAllByIdPhone,
-			//findById: findById,
 			create: create
 		}
 }();
 
 	
-module.exports = smsDb;
+module.exports = callDb;
 
 

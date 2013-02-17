@@ -57,7 +57,7 @@ curl -i -X DELETE "http://localhost:1337/phones/phone-{idPhone}"
 
 POST
 -crea un nuovo sms
-curl -i -H "Accept: application/json" -d "direction=outgoing&phoneNumber=0123456789&timespamp=YYYY-MM-DDTHH:mm:ss.000Z&text=sms numero 1"  -X POST  "http://localhost:1337/phones/phone-{idPhone}/smss"
+curl -i -H "Accept: application/json" -d "direction=outgoing&phoneNumber=0123456789&timestamp=YYYY-MM-DDTHH:mm:ss.000Z&text=sms numero 1"  -X POST  "http://localhost:1337/phones/phone-{idPhone}/smss"
 
 
 
