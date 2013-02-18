@@ -75,10 +75,13 @@ var call = function() {
 
 		call.phone_id = idPhone;
 
+		var newCall = call;
 		callDb.create(call, function(err, call) {
 			console.log(METHOD + "Creato nuovo call: " + JSON.stringify(call));
 			response.send(call);
+			newCall = call;
 		});
+		return newCall;
 	}
 
 	// metodi pubblici

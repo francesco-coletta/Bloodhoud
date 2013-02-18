@@ -1,0 +1,261 @@
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js">
+
+</script>
+
+<script>
+window.jQuery || document.write('<script src="js/jquery-1.8.3.min.js"><\/script>')
+</script>
+
+<script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+	<div id="phonePanel"> ================================================ PHONE ================================================</div>
+	<div id="smsPanel"> ================================================ SMS ================================================</div>
+	<div id="callPanel"> ================================================ CALL ================================================</div>
+
+
+
+<script>
+(function (d, b) {
+
+    function bindEvents() {
+        function doSomething(msg) {
+            $.each(msg, function (key, value) {
+                console.log('doSomething...');
+                $("body").append("<p>" + value + "</p>")
+            });
+        };
+
+    // var socket = io.connect();
+    var socket = io.connect('http://192.168.137.129:1337');
+
+    socket.on('welcome', function (data) {
+        console.log('welcome - Data from Server: ', data);
+        doSomething(data);
+        
+        socket.emit('clientReady', {msg: 'Client is Ready'});
+    });
+
+    socket.on('phonesList', function (phones) {
+        console.log('phonesList - Message from Server: ', phones);
+        
+        var table = $('<table></table>').addClass('table');
+        table.attr("id","tablePhone");
+        table.attr("border", "1");
+        var caption = $('<caption></caption>').text("Phone list");
+        table.append(caption);
+        
+        var head = $('<thead></thead>').addClass('thead');
+        var headRow = $('<tr></tr>').addClass('tr');
+        var headRowCell = $('<th></th>').addClass('th').text("num");
+        headRow.append(headRowCell);
+        var headRowCell = $('<th></th>').addClass('th').text("id");
+        headRow.append(headRowCell);
+        var headRowCell = $('<th></th>').addClass('th').text("imei");
+        headRow.append(headRowCell);
+        var headRowCell = $('<th></th>').addClass('th').text("model");
+        headRow.append(headRowCell);
+        head.append(headRow);
+        table.append(head);
+        
+        $.each(phones.phones, function (key, phone) {
+            var row = $('<tr></tr>').addClass('row');
+            var rowCell = $('<td></td>').addClass('cell').text(key);
+            row.append(rowCell);
+            var rowCell = $('<td></td>').addClass('cell').text(phone._id);
+            row.append(rowCell);
+            var rowCell = $('<td></td>').addClass('cell').text(phone.imei);
+            row.append(rowCell);
+            var rowCell = $('<td></td>').addClass('cell').text(phone.name);
+            row.append(rowCell);
+            table.append(row);
+        });
+        $('#phonePanel').append(table);
+        $('#phonePanel').append("<br>");
+        $('#phonePanel').append("<br>");
+        
+        
+        //for each phone create sms table
+        $.each(phones.phones, function (key, phone) {
+            var table = $('<table></table>').addClass('table');
+            table.attr("id","tableSms" + phone.imei);
+            table.attr("border", "1");
+            
+            var caption = $('<caption></caption>').text("Sms for phone " + phone.imei);
+            table.append(caption);
+            
+            var head = $('<thead></thead>').addClass('thead');
+            var headRow = $('<tr></tr>').addClass('tr');
+            var headRowCell = $('<th></th>').addClass('th').text("id");
+            headRow.append(headRowCell);
+            var headRowCell = $('<th></th>').addClass('th').text("timestamp");
+            headRow.append(headRowCell);
+            var headRowCell = $('<th></th>').addClass('th').text("direction");
+            headRow.append(headRowCell);
+            var headRowCell = $('<th></th>').addClass('th').text("phoneNumber");
+            headRow.append(headRowCell);
+            var headRowCell = $('<th></th>').addClass('th').text("nameContact");
+            headRow.append(headRowCell);
+            var headRowCell = $('<th></th>').addClass('th').text("text");
+            headRow.append(headRowCell);
+            head.append(headRow);
+            table.append(head);
+        	
+            $('#smsPanel').append(table);
+            $('#smsPanel').append("<br>");
+            $('#smsPanel').append("<br>");
+        });
+
+        //for each phone create call table
+        $.each(phones.phones, function (key, phone) {
+            var table = $('<table></table>').addClass('table');
+            table.attr("id","tableCall" + phone.imei);
+            table.attr("border", "1");
+            
+            var caption = $('<caption></caption>').text("Call for phone " + phone.imei);
+            table.append(caption);
+            
+            var head = $('<thead></thead>').addClass('thead');
+            var headRow = $('<tr></tr>').addClass('tr');
+            var headRowCell = $('<th></th>').addClass('th').text("id");
+            headRow.append(headRowCell);
+            var headRowCell = $('<th></th>').addClass('th').text("direction");
+            headRow.append(headRowCell);
+            var headRowCell = $('<th></th>').addClass('th').text("phoneNumber");
+            headRow.append(headRowCell);
+            var headRowCell = $('<th></th>').addClass('th').text("nameContact");
+            headRow.append(headRowCell);
+            var headRowCell = $('<th></th>').addClass('th').text("state");
+            headRow.append(headRowCell);
+            var headRowCell = $('<th></th>').addClass('th').text("timestampStart");
+            headRow.append(headRowCell);
+            var headRowCell = $('<th></th>').addClass('th').text("timestampEnd");
+            headRow.append(headRowCell);
+            var headRowCell = $('<th></th>').addClass('th').text("duration");
+            headRow.append(headRowCell);
+            head.append(headRow);
+            table.append(head);
+        	
+            $('#callPanel').append(table);
+            $('#callPanel').append("<br>");
+        });
+        
+        socket.emit('waitForTodaySms', {msg: 'Send me today sms'});
+    });
+    
+
+    
+    
+    socket.on('todaySmsList', function (sms) {
+        console.log('todaySmsList - Message from Server: ', sms);
+        //for each phone create sms table
+        $.each(sms.sms, function (key, sms) {
+            var row = $('<tr></tr>').addClass('row');
+            var rowCell = $('<td></td>').addClass('cell').text(sms._id);
+            row.append(rowCell);
+            var rowCell = $('<td></td>').addClass('cell').text(sms.timestamp);
+            row.append(rowCell);
+            var rowCell = $('<td></td>').addClass('cell').text(sms.direction);
+            row.append(rowCell);
+            var rowCell = $('<td></td>').addClass('cell').text(sms.phoneNumber);
+            row.append(rowCell);
+            var rowCell = $('<td></td>').addClass('cell').text(sms.nameContact);
+            row.append(rowCell);
+            var rowCell = $('<td></td>').addClass('cell').text(sms.text);
+            row.append(rowCell);
+            $('#tableSms' + sms.phone_id).append(row);        	
+        });        
+        
+        socket.emit('waitForTodayCall', {msg: 'Send me today call'});
+    });    
+
+    socket.on('todayCallList', function (call) {
+        console.log('todayCallList - Message from Server: ', call);
+        //for each phone create sms table
+        $.each(call.call, function (key, call) {
+            var row = $('<tr></tr>').addClass('row');
+            var rowCell = $('<td></td>').addClass('cell').text(call._id);
+            row.append(rowCell);
+            var rowCell = $('<td></td>').addClass('cell').text(call.direction);
+            row.append(rowCell);
+            var rowCell = $('<td></td>').addClass('cell').text(call.phoneNumber);
+            row.append(rowCell);
+            var rowCell = $('<td></td>').addClass('cell').text(call.nameContact);
+            row.append(rowCell);
+            var rowCell = $('<td></td>').addClass('cell').text(call.state);
+            row.append(rowCell);
+            var rowCell = $('<td></td>').addClass('cell').text(call.timestampStart);
+            row.append(rowCell);
+            var rowCell = $('<td></td>').addClass('cell').text(call.timestampEnd);
+            row.append(rowCell);
+            var rowCell = $('<td></td>').addClass('cell').text(call.duration);
+            row.append(rowCell);
+            $('#tableCall' + call.phone_id).append(row);        	
+        });        
+        
+    });    
+    
+
+    socket.on('newSms', function (sms) {
+        console.log('newSms - Message from Server: ', sms);
+        
+        var newSms = sms.sms;
+        var row = $('<tr></tr>').addClass('row');
+        var rowCell = $('<td></td>').addClass('cell').text(newSms._id);
+        row.append(rowCell);
+        var rowCell = $('<td></td>').addClass('cell').text(newSms.timestamp);
+        row.append(rowCell);
+        var rowCell = $('<td></td>').addClass('cell').text(newSms.direction);
+        row.append(rowCell);
+        var rowCell = $('<td></td>').addClass('cell').text(newSms.phoneNumber);
+        row.append(rowCell);
+        var rowCell = $('<td></td>').addClass('cell').text(newSms.nameContact);
+        row.append(rowCell);
+        var rowCell = $('<td></td>').addClass('cell').text(newSms.text);
+        row.append(rowCell);
+        $('#tableSms' + newSms.phone_id).append(row);
+    });
+    
+    
+
+    socket.on('newCall', function (call) {
+        console.log('newCall - Message from Server: ', call);
+        
+        var newCall = call.call;
+        var row = $('<tr></tr>').addClass('row');
+        var rowCell = $('<td></td>').addClass('cell').text(newCall._id);
+        row.append(rowCell);
+        var rowCell = $('<td></td>').addClass('cell').text(newCall.direction);
+        row.append(rowCell);
+        var rowCell = $('<td></td>').addClass('cell').text(newCall.phoneNumber);
+        row.append(rowCell);
+        var rowCell = $('<td></td>').addClass('cell').text(newCall.nameContact);
+        row.append(rowCell);
+        var rowCell = $('<td></td>').addClass('cell').text(newCall.state);
+        row.append(rowCell);
+        var rowCell = $('<td></td>').addClass('cell').text(newCall.timestampStart);
+        row.append(rowCell);
+        var rowCell = $('<td></td>').addClass('cell').text(newCall.timestampEnd);
+        row.append(rowCell);
+        var rowCell = $('<td></td>').addClass('cell').text(newCall.duration);
+        row.append(rowCell);
+        $('#tableCall' + newCall.phone_id).append(row);
+    });    
+    
+    socket.on('connect-error', function (err) {
+        console.log('Connection Error\n', err);
+    });
+
+    socket.on('error', function (err) {
+        console.log('Connection Error\n', err);
+    });
+};
+
+$(document).ready(function () {
+    bindEvents()
+});
+
+})(jQuery, this)
+</script>

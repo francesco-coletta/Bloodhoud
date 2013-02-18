@@ -30,7 +30,7 @@ http://192.168.137.129:1337/phones/phone-{idPhone}/smss?interval[start]=2013-01-
 http://192.168.137.129:1337/phones/phone-{idPhone}/smss?day=2013-01-24&direction=outgoing&phoneNumber=1234567890
 
 curl -i -X GET  "http://localhost:1337/phones/phone-{idPhone}/smss?day=2013-01-20&direction=outgoing"
-curl -i -X GET "http://localhost:1337/phones/phone-{idPhone}/smss?interval[start]=2013-01-24&interval[end]=2013-01-25"
+	curl -i -X GET "http://localhost:1337/phones/phone-{idPhone}/smss?interval[start]=2013-01-24&interval[end]=2013-01-25"
 curl -i -X GET "http://localhost:1337/phones/phone-{idPhone}/smss?day=2013-01-24&direction=outgoing&phoneNumber=1234567890"
 
 
@@ -57,8 +57,9 @@ curl -i -X DELETE "http://localhost:1337/phones/phone-{idPhone}"
 
 POST
 -crea un nuovo sms
-curl -i -H "Accept: application/json" -d "direction=outgoing&phoneNumber=0123456789&timestamp=YYYY-MM-DDTHH:mm:ss.000Z&text=sms numero 1"  -X POST  "http://localhost:1337/phones/phone-{idPhone}/smss"
+curl -i -H "Accept: application/json" -d "direction=outgoing&phoneNumber=0123456789&nameContact=sconociuto&timestamp=YYYY-MM-DDTHH:mm:ss.000Z&text=sms numero 1"  -X POST  "http://localhost:1337/phones/phone-{idPhone}/smss"
 
+curl -i -H "Accept: application/json" -d "direction=outgoing&phoneNumber=0123456789&nameContact=sconociuto&timestamp=2013-02-19T19:04:00.000Z&text=sms numero 1"  -X POST  "http://192.168.137.129:1337/phones/phone-000000000000000/sms"
 
 
 

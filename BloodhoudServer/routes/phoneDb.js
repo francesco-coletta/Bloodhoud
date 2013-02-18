@@ -59,6 +59,7 @@ var phoneDb = function (){
 				{
 					var METHOD = CLASS + ".findAll: ";
 					console.log(METHOD + "Retrieving all phones" );
+					//console.log(METHOD + "callback: " + callback);
 
 					database.istanceDb.collection(database.collectionNames.PHONE, function(err, collection)
 						{

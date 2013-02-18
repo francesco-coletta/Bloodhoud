@@ -88,7 +88,6 @@ var sms = function (){
 					console.log(METHOD + 'Retrieve sms from/to number: ' + phoneNumber);
 				}
 				
-				
 				var params = {
 					idPhone: idPhone,
 					day: day,
@@ -104,8 +103,8 @@ var sms = function (){
 							response.send(sms);
 						}
 				);
-			};		
-
+			};	
+			
 		var create = function(request, response)
 			{
 				var METHOD = CLASS + ".create: ";
@@ -119,14 +118,17 @@ var sms = function (){
 				
 				sms.phone_id = idPhone;
 				
+				var newSms = sms;
 				smsDb.create(
 					sms, 
 					function(err, sms)
 						{
 							console.log(METHOD + "Creato nuovo sms: " + JSON.stringify(sms));
 							response.send(sms);
+							newSms = sms;
 						}
 				);
+				return newSms;
 			}
 
 			

@@ -15,15 +15,40 @@
  * carico i moduli nativi necessari
  */
 
-// Sinatra inspired web development framework
+// Express web development framework
 var express = require('express');
+
+// Websocket (http://socket.io/#how-to-use)
+var http = require('http');
+var io = require('socket.io');
+
+
 var phone = require('./routes/phone');
 var sms = require('./routes/sms');
 var call = require('./routes/call');
 var database = require('./routes/database');
+var ws_server = require('./bloodhoud_ws_server');
+
 
 // crea una applicazione
 var app = express();
+
+//  bind socket.io to the express server
+var server = http.createServer(app);
+var wsServer  = io.listen(server);
+
+// sets the log level of socket.io, with
+// log level 2 we wont see all the heartbits
+// of each socket but only the handshakes and
+// disconnections
+wsServer.set('log level', 2);
+
+// setting the transports by order, if some client
+// is not supporting 'websockets' then the server will
+// revert to 'xhr-polling' (like Comet/Long polling).
+// for more configurations go to:
+// https://github.com/LearnBoost/Socket.IO/wiki/Configuring-Socket.IO
+wsServer.set('transports', [ 'websocket', 'xhr-polling' ]);
 
 
 app.configure(
@@ -32,6 +57,21 @@ app.configure(
 		app.use(express.bodyParser());
 	}
 );
+
+
+// configure express, since this server is
+// also a web server, we need to define the
+// paths to the static files
+app.use("/styles", express.static(__dirname + '/public/styles'));
+app.use("/scripts", express.static(__dirname + '/public/scripts'));
+app.use("/images", express.static(__dirname + '/public/images'));
+ 
+// serving the main applicaion file (index.html)
+// when a client makes a request to the app root
+// (http://localhost:8080/)
+app.get('/', function (request, response) {
+	response.sendfile(__dirname + '/public/index.html');
+});
 
 //PURGE DATABASE
 app.delete('/database', database.purgeDatabase);
@@ -107,7 +147,10 @@ app.post('/phones', phone.create);
  * timespamp=YYYY-MM-DDTHH:mm:ss.000Z (UTC)
  * text=
 */
-app.post('/phones/phone-:imei/sms', sms.create);
+//app.post('/phones/phone-:imei/sms', sms.create);
+app.post('/phones/phone-:imei/sms', function(request, response){
+	wsServer.sockets.emit("newSms", { sms: sms.create(request, response) } );
+});
 
 // ADD new CALL
 /*
@@ -121,12 +164,55 @@ app.post('/phones/phone-:imei/sms', sms.create);
  * state=xxxx
  * duration=xx
 */
-app.post('/phones/phone-:imei/call', call.create);
+//app.post('/phones/phone-:imei/call', call.create);
+app.post('/phones/phone-:imei/call', function(request, response){
+	wsServer.sockets.emit("newCall", { call: call.create(request, response) } );
+});
+
+
+// ##########################################
+// WEBSOCKET
+
+
+// socket.io events, each connection goes through here
+// and each event is emited in the client.
+// I created a function to handle each event
+wsServer.sockets.on('connection', function (socket) {
+		//send to client welcome message
+		ws_server.connect(socket);
+
+		// after connection, the client sends us the message that it is ready for data
+        socket.on('clientReady', function(data) {
+            ws_server.clientReady(socket, data);
+        });		
+
+		// after the phone list, the client is waiting for today sms
+        socket.on('waitForTodaySms', function(data) {
+            ws_server.sendTodaySms(socket, data);
+        });		
+
+		// after the sms list, the client is waiting for today call
+        socket.on('waitForTodayCall', function(data) {
+            ws_server.sendTodayCall(socket, data);
+        });		
+
+
+		// when a client calls the 'socket.close()'
+		// function or closes the browser, this event
+		// is built in socket.io so we actually dont
+		// need to fire it manually
+		socket.on('disconnect', function(){
+				ws_server.disconnect(socket);
+			});
+	});
 
 
 var INADDR_ANY = '0.0.0.0';
 var serverIp = INADDR_ANY; // '127.0.0.1';
 var serverPort = 1337;
-app.listen(serverPort);
+
+//app.listen(serverPort);
+server.listen(serverPort);
+
 console.log("> SERVER STARTED");
 console.log("> SERVER LISTENING at http://" + serverIp + ":" + serverPort);

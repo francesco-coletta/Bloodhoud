@@ -98,14 +98,14 @@ var callDb = function(){
 						
 						console.log(METHOD + 'Day: ' + day);
 						console.log(METHOD + 'Interval for Day: ' + JSON.stringify(interval));
-						qBuilder.andInIntervalEqual("timespamp", interval.start, interval.end);
+						qBuilder.andInIntervalEqual("timestampStart", interval.start, interval.end);
 					}
 					
 					var interval = params.interval;
 					if (typeof interval !== 'undefined'){
 						var intervalNormalized = getIntervalOfIntervalDay(interval.start, interval.end);
 						console.log(METHOD + 'Interval: ' + JSON.stringify(intervalNormalized));
-						qBuilder.andInIntervalEqual("timespamp", intervalNormalized.start, intervalNormalized.end);
+						qBuilder.andInIntervalEqual("timestampStart", intervalNormalized.start, intervalNormalized.end);
 					}
 					
 					var direction = params.direction;
@@ -156,10 +156,27 @@ var callDb = function(){
 							);
 						}
 				);    
-				/*
-				*/			
 	    	};
-	 
+
+		/*
+		* 
+		*/
+	 	var findAllToday = function(callback)
+	    	{
+	    		var METHOD = CLASS + ".findAllToday: ";
+	    		
+				var params = {
+					idPhone: undefined,
+					day: getTodayLikeString(),
+					interval: undefined,
+					direction: undefined,
+					phoneNumber: undefined
+				}	    		
+				
+				//console.log(METHOD + "callback: " + callback);
+	    		find(params, callback);
+	    	}	    	
+	    	
 		var findById = function(id, callback)
 			{
 				var METHOD = CLASS + ".findById: ";
@@ -252,29 +269,63 @@ var callDb = function(){
 	 
 
 	 
-		// from "yyyy-mm-dd" format to date
+		// from "yyyy-mm-dd" format to date  "yyyy-mm-ddT00:00:00.000T"  
 		function getDateStart(day) {
 			var parts = day.match(/(\d+)/g);
-			// new Date(year, month [, date [, hours[, minutes[, seconds[,
-			// ms]]]]])
-			return  Date.UTC(parts[0], parts[1]-1, parts[2], 0, 0, 0, 0); // months
-																			// are
-																			// 0-based
+			// new Date(year, month [, date [, hours[, minutes[, seconds[, ms]]]]])
+			return  Date.UTC(parts[0], parts[1]-1, parts[2], 0, 0, 0, 0); // months are 0-based
 		}		 
 
-		// from "yyyy-mm-dd" format to date "yyyy-mm-ddT23:59:59.000T"
+		// from "yyyy-mm-dd" format to date "yyyy-mm-ddT23:59:59.000T"  
 		function getDateEnd(day) {
-			var parts = day.match(/(\d+)/g);
-			// new Date(year, month [, date [, hours[, minutes[, seconds[,
-			// ms]]]]])
-			return  Date.UTC(parts[0], parts[1]-1, parts[2], 23, 59, 59, 999); // months
-																				// are
-																				// 0-based
+			var parts = day.match(/(\d+)/g);	
+			// new Date(year, month [, date [, hours[, minutes[, seconds[, ms]]]]])
+			return  Date.UTC(parts[0], parts[1]-1, parts[2], 23, 59, 59, 999); // months are 0-based
 		}		 
 
+		// return today like a date in yyyy-mm-dd 
+		function getTodayLikeString() {
+			var METHOD = CLASS + ".getIntervalOfToday: ";
 		
-		// parse a date in yyyy-mm-dd format and return interval [yyyy-mm-dd
-		// 00:00:01, yyyy-mm-dd 23:59:59]
+			var today = (new Date());
+			var todayString = today.getUTCFullYear();
+			todayString += '-';
+			if (today.getUTCMonth() > 8){
+				todayString += (today.getUTCMonth() + 1);
+			}
+			else{
+				todayString +=  '0' + (today.getUTCMonth() + 1);
+			}
+			todayString += '-';
+			todayString += today.getUTCDate();
+			
+			console.log(METHOD + "todayString: " + todayString);
+			
+			return todayString;
+		}
+		
+		// parse a date in yyyy-mm-dd format and return interval [yyyy-mm-dd 00:00:01, yyyy-mm-dd 23:59:59]
+		function getIntervalOfToday() {
+			var METHOD = CLASS + ".getIntervalOfToday: ";
+		
+			var today = (new Date());
+			var todayString = today.getUTCFullYear();
+			todayString += '-';
+			if (today.getUTCMonth() > 8){
+				todayString += (today.getUTCMonth() + 1);
+			}
+			else{
+				todayString +=  '0' + (today.getUTCMonth() + 1);
+			}
+			todayString += '-';
+			todayString += today.getUTCDate();
+			
+			console.log(METHOD + "todayString: " + todayString);
+			
+			return getIntervalOfSingleDay(todayString);
+		}			
+		
+		// parse a date in yyyy-mm-dd format and return interval [yyyy-mm-dd 00:00:01, yyyy-mm-dd 23:59:59]
 		function getIntervalOfSingleDay(day) {
 			var interval = 
 				{
@@ -284,8 +335,7 @@ var callDb = function(){
 			return interval;
 		}		 
 		
-		// parse a date in yyyy-mm-dd format and return interval [yyyy-mm-dd
-		// 00:00:01, yyyy-mm-dd 23:59:59]
+		// parse a date in yyyy-mm-dd format and return interval [yyyy-mm-dd 00:00:01, yyyy-mm-dd 23:59:59]
 		function getIntervalOfIntervalDay(startDay, endDay) {
 			var interval = 
 				{
@@ -298,11 +348,11 @@ var callDb = function(){
 		function convertDateToUTC(date) { 
 			return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()); 
 		}		
-		
 
 		// metodi pubblici
 		return {
 			findAll: findAll,
+			findAllToday: findAllToday,
 			find: find,
 			create: create
 		}
