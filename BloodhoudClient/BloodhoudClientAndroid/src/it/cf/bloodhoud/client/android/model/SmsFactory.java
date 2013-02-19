@@ -13,18 +13,18 @@ public class SmsFactory
 	{
 		static private final Logger LOG = LoggerFactory.getLogger(SmsFactory.class);
 
-		static public Sms sms(SmsDirection direction, String phoneNumber, long timestamp, String text)
+		static public Sms sms(int localId, SmsDirection direction, String phoneNumber, long timestamp, String text)
 		{
-			return new Sms(direction, StringUtils.trimToEmpty(phoneNumber), timestamp, StringUtils.trimToEmpty(text));
+			return new Sms(localId, direction, StringUtils.trimToEmpty(phoneNumber), timestamp, StringUtils.trimToEmpty(text));
 		}
 		
-		static public Sms sms(String direction, String phoneNumber, long timestamp, String text)
+		static public Sms sms(int localId, String direction, String phoneNumber, long timestamp, String text)
 		{
 			SmsDirection dir = Sms.SmsDirection.Incoming;
 			if (StringUtils.equalsIgnoreCase(direction, Sms.SmsDirection.Outgoing.name())){
 				dir = Sms.SmsDirection.Outgoing;
 			}
-			return new Sms(dir, StringUtils.trimToEmpty(phoneNumber), timestamp, StringUtils.trimToEmpty(text));
+			return new Sms(localId, dir, StringUtils.trimToEmpty(phoneNumber), timestamp, StringUtils.trimToEmpty(text));
 		}
 		
 		

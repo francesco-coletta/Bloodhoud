@@ -5,15 +5,17 @@
     <string name="menu_settings">Settings</string>
     
     <!-- Activity login -->
-    <string name="title_activity_access_callSmsListener">SMS Listener</string>
+    <string name="title_activity_access_callSmsListener">Bloodhoud</string>
     <string name="label_password">Password</string>
     <string name="button_ok">OK</string>
     <string name="button_cancel">Cancel</string>
     
     
     <!-- Activity per export dati -->
-    <string name="title_activity_export_data_file">Esporta i file dei dati</string>
+    <string name="title_activity_control_data">Gestione dati</string>
     <string name="button_export">Export</string>
+    <string name="button_exportDb">Export file DB</string>
+    <string name="button_SendAgainDataToServer">Reinvia dati al server</string>
     <string name="button_clear_logfile">Clear log</string>
     <string name="label_TaskResult">Clear log</string>
     

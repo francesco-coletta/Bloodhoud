@@ -18,11 +18,10 @@ public class IncomingCall
 		
 		
 		
-		public IncomingCall(String phoneNumber, String nameContact,
+		public IncomingCall(int localId, String phoneNumber, String nameContact,
 				long timestampStartCall, long timestampEndCall,
 				CallDirection direction, CallState state) {
-			super(phoneNumber, nameContact, timestampStartCall, timestampEndCall,
-					direction, state);
+			super(localId, phoneNumber, nameContact, timestampStartCall, timestampEndCall,direction, state);
 		}
 
 

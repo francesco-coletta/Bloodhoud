@@ -31,7 +31,7 @@ public class CallFactory
 			}
 		
 		
-		public Call call(String phoneNumber, String nameContact,
+		public Call call(int localId, String phoneNumber, String nameContact,
 				long timestampStartCall, long timestampEndCall,
 				CallDirection direction, CallState state) throws Exception
 		{
@@ -39,10 +39,10 @@ public class CallFactory
 			switch (direction)
 			{
 			case OUTGOING:
-				call = new OutgoingCall(phoneNumber, nameContact, timestampStartCall, timestampEndCall, direction, state);
+				call = new OutgoingCall(localId, phoneNumber, nameContact, timestampStartCall, timestampEndCall, direction, state);
 				break;
 			case INCOMING:
-				call = new IncomingCall(phoneNumber, nameContact, timestampStartCall, timestampEndCall, direction, state);
+				call = new IncomingCall(localId, phoneNumber, nameContact, timestampStartCall, timestampEndCall, direction, state);
 				break;
 			default:
 				throw new Exception("La direzione deve essere incoming o outgoing");
@@ -50,14 +50,14 @@ public class CallFactory
 			return call;
 		}
 		
-		public Call call(String phoneNumber, String nameContact,
+		public Call call(int localId, String phoneNumber, String nameContact,
 				long timestampStartCall, long timestampEndCall,
 				String direction, String state) throws Exception
 		{
 			CallDirection callDir = getCallDirection(direction);
 			CallState callState = getCallState(state);
 			
-			return call(phoneNumber, nameContact, timestampStartCall, timestampEndCall, callDir, callState);
+			return call(localId, phoneNumber, nameContact, timestampStartCall, timestampEndCall, callDir, callState);
 		}		
 
 		public Call createNewCall(CallDirection direction, Intent intent) throws Exception

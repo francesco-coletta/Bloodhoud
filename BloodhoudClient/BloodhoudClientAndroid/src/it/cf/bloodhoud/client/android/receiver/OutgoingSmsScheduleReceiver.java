@@ -1,5 +1,6 @@
 package it.cf.bloodhoud.client.android.receiver;
 
+import it.cf.bloodhoud.client.android.App;
 import it.cf.bloodhoud.client.android.model.Utils;
 
 import org.slf4j.Logger;
@@ -17,11 +18,6 @@ public class OutgoingSmsScheduleReceiver extends BroadcastReceiver {
 	static private final Logger LOG = LoggerFactory
 			.getLogger(OutgoingSmsScheduleReceiver.class);
 
-	public static final String APP_FILE_PREFERENCES = "smsListener";
-	
-	public static final String APP_PROP_NAME_TIMESTAMP_LASTCHECK = "time_last_checked";
-
-	private static final long REPEAT_INTERVAL = 10 * 1000;
 
 	private static final String TAG = "OutgoingSmsScheduleReceiver";
 
@@ -53,13 +49,13 @@ public class OutgoingSmsScheduleReceiver extends BroadcastReceiver {
 		Intent customIntent = new Intent(context, OutgoingSmsReceiver.class);
 		final PendingIntent outgoingSmsLogger = PendingIntent.getBroadcast(context, 0, customIntent, 0);
 		final AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-		am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+ REPEAT_INTERVAL, REPEAT_INTERVAL, outgoingSmsLogger);
+		am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+ App.REPEAT_INTERVAL_CHECK_OUTGOING_SMS, App.REPEAT_INTERVAL_CHECK_OUTGOING_SMS, outgoingSmsLogger);
 	}
 
 	private void storeTimestampLastCheck(final Context context) {
 		final long currentTime = System.currentTimeMillis();
-		final Editor editor = context.getSharedPreferences(OutgoingSmsScheduleReceiver.APP_FILE_PREFERENCES, Context.MODE_PRIVATE).edit();
-		editor.putLong(APP_PROP_NAME_TIMESTAMP_LASTCHECK, currentTime);
+		final Editor editor = context.getSharedPreferences(App.APP_FILE_PREFERENCES, Context.MODE_PRIVATE).edit();
+		editor.putLong(App.APP_PROP_NAME_TIMESTAMP_LASTCHECK_OUTGOING_SMS, currentTime);
 		editor.commit();
 
 		// Log.d(TAG, "Update timestamp last check: " + currentTime + " = " +

@@ -10,5 +10,7 @@ public interface RepositoryLocalRead
 	{
 		Phone getPhone(String deviceId);
 		List<Sms> getSms();
+		List<Sms> getSmsNotAlreadySendedToServer();
 		List<Call> getCall();
+		List<Call> getCallNotAlreadySendedToServer();
 	}

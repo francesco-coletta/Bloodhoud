@@ -1,6 +1,7 @@
 package it.cf.bloodhoud.client.android.receiver;
 
 
+import it.cf.bloodhoud.client.android.App;
 import it.cf.bloodhoud.client.android.activity.AccessCallSmsListenerActivity;
 import it.cf.bloodhoud.client.android.model.Phone;
 import it.cf.bloodhoud.client.android.model.Utils;
@@ -25,15 +26,8 @@ public class InitApp
 	{
 		static private final Logger LOG = LoggerFactory.getLogger(InitApp.class);
 
-		public static final String APP_FILE_PREFERENCES = "smsListener";
-
 		private static final String ACTION_BOOT_COMPLETED = "android.intent.action.BOOT_COMPLETED";
 		private static final String ACTION_QUICKBOOT_POWERON = "android.intent.action.QUICKBOOT_POWERON";
-
-		// costante che indica l'azione alarm che verra notificata ai receiver per gestire il check degli outgoing sms
-		private static final String CHECK_OUTGOING_SMS = "it.cf.android.smsListener.CHECK_OUTGOING_SMS";
-		private static final long EXEC_INTERVAL = 30 * 1000;
-
 		private static final String TAG = "InitApp";
 		
 
@@ -89,18 +83,15 @@ public class InitApp
 								Log.i(TAG, "Boot Completed");
 								LOG.info("Boot Completed");
 
-								configureDefaultPassword(context, intent);
+								configureDefaultPassword(context);
 								LOG.info("Default password configuration Completed");
 								Log.i(TAG, "Default password configuration Completed");
+
+                                                                configureDefaultServer(context);
+                                                                LOG.info("Default server configuration Completed");
+                                                                Log.i(TAG, "Default server configuration Completed");
 								
-								
-								RepositoryLocalSQLLite repoDb = new RepositoryLocalSQLLite(context);
-								String deviceModel = getDeviceName();
-								String deviceId = getDeviceId(context);
-								Phone phone = new Phone(deviceId, deviceModel);
-								repoDb.writePhone(phone);
-								LOG.info("Phone {}", phone.toString());
-								Log.i(TAG, "Phone : " + phone.toString());
+								saveDeviceInfo(context);				
 							}
 					}
 				catch (final Exception e)
@@ -111,11 +102,10 @@ public class InitApp
 					}
 			}
 
-		private void configureDefaultPassword(Context context, Intent intent)
+		private void configureDefaultPassword(Context context)
 			{
-
-				SharedPreferences pref = context.getSharedPreferences(InitApp.APP_FILE_PREFERENCES, Context.MODE_PRIVATE);
-				if (pref.contains(AccessCallSmsListenerActivity.APP_PROP_NAME_PASSWORD))
+				SharedPreferences pref = context.getSharedPreferences(App.APP_FILE_PREFERENCES, Context.MODE_PRIVATE);
+				if (pref.contains(App.APP_PROP_NAME_PASSWORD))
 					{
 						LOG.debug("La password esiste già nelle preferenze");
 						Log.d(TAG, "La password esiste già nelle preferenze");
@@ -125,61 +115,56 @@ public class InitApp
 						LOG.debug("La password non esiste nelle preferenze. Creo la password di default");
 						Log.d(TAG, "La password non esiste nelle preferenze. Creo la password di default");
 						final Editor editor = pref.edit();
-						editor.putString(AccessCallSmsListenerActivity.APP_PROP_NAME_PASSWORD, "0123456789");
+						editor.putString(App.APP_PROP_NAME_PASSWORD, App.DEFAULT_PASSWORD);
 						editor.commit();
 					}
 			}
 
+                private void configureDefaultServer(Context context)
+                    {
+                            SharedPreferences pref = context.getSharedPreferences(App.APP_FILE_PREFERENCES, Context.MODE_PRIVATE);
+                            if (pref.contains(App.APP_PROP_NAME_SERVER))
+                                    {
+                                            LOG.debug("Il server esiste già nelle preferenze");
+                                            Log.d(TAG, "Il server esiste già nelle preferenze");
+                                    }
+                            else
+                                    {
+                                            LOG.debug("Il server non esiste nelle preferenze. Creo il server di default");
+                                            Log.d(TAG, "Il server non esiste nelle preferenze. Creo il server di default");
+                                            final Editor editor = pref.edit();
+                                            editor.putString(App.APP_PROP_NAME_SERVER, App.DEFAULT_SERVER);
+                                            editor.commit();
+                                    }
+                    }
+		
+		
+                private void saveDeviceInfo(Context context)
+                    {
+                        RepositoryLocalSQLLite repoDb = new RepositoryLocalSQLLite(context);
+                        String deviceModel = Utils.getDeviceName();
+                        String deviceId = Utils.getDeviceId(context);
+                        
+                        if (repoDb.getPhone(deviceId) == null){
+                            LOG.info("Phone non registrato");
+                            Phone phone = new Phone(deviceId, deviceModel);
+                            repoDb.writePhone(phone);
+                            LOG.info("Phone {}", phone.toString());
+                            Log.i(TAG, "Phone registrato: " + phone.toString());
+                        }
+                        else{
+                            LOG.info("Phone già registrato");
+                            Log.i(TAG, "Phone già registrato");
+                        }
+                    }
+		
+		
 		private boolean isBootCompleted(final Intent intent)
 			{
 				return ((intent != null) && (intent.getAction() != null) && ((ACTION_BOOT_COMPLETED.compareToIgnoreCase(intent.getAction()) == 0) || (ACTION_QUICKBOOT_POWERON.compareToIgnoreCase(intent.getAction()) == 0)));
 			}
 
-		private void configureAlarmManagerForCheckOutgoingSms(final Context context, final Intent intent) throws Exception
-			{
-				if (context == null || intent == null)
-					{
-						throw new Exception("(context == null || intent == null)");
-					}
-
-				storeTimestampLastCheck(context);
-
-				final PendingIntent outgoingSmsLogger = PendingIntent.getBroadcast(context, 0, new Intent(CHECK_OUTGOING_SMS), 0);
-				final AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-				am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + EXEC_INTERVAL, EXEC_INTERVAL, outgoingSmsLogger);
-			}
-
-		private void storeTimestampLastCheck(final Context context)
-			{
-				final long currentTime = System.currentTimeMillis();
-				final Editor editor = context.getSharedPreferences(InitApp.APP_FILE_PREFERENCES, Context.MODE_PRIVATE).edit();
-				editor.putLong(OutgoingSmsReceiver.APP_PROP_NAME_TIMESTAMP_LASTCHECK, currentTime);
-				editor.commit();
-
-				// Log.d(TAG, "Update timestamp last check: " + currentTime + " = " + Utils.formatDatetime(currentTime));
-				LOG.debug("Update timestamp last check: {}  = {}", currentTime, Utils.formatDatetime(currentTime));
-			}
 		
-		
-		public String getDeviceName() {
-			  String manufacturer = Build.MANUFACTURER;
-			  String model = Build.MODEL;
-			  if (model.startsWith(manufacturer)) {
-			    return model;
-			  } else {
-			    return manufacturer + " " + model;
-			  }
-			} 
-		
-		
-		
-		public String getDeviceId(Context context){
-			TelephonyManager telephonyManager = null;
-			telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE );
-			String deviceId = telephonyManager.getDeviceId();
-			return deviceId;
-		}
-
 		// private void configureLogging(final Context context, final Intent intent) throws Exception
 		// {
 		// if (context == null || intent == null)

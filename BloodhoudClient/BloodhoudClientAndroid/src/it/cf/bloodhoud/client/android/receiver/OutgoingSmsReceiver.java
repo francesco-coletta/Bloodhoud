@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import it.cf.bloodhoud.client.android.App;
 import it.cf.bloodhoud.client.android.model.ContactManager;
 import it.cf.bloodhoud.client.android.model.Sms;
 import it.cf.bloodhoud.client.android.model.SmsFactory;
@@ -27,8 +28,6 @@ import android.os.AsyncTask;
 public class OutgoingSmsReceiver extends BroadcastReceiver {
 	static private final Logger LOG = LoggerFactory.getLogger(OutgoingSmsReceiver.class);
 	
-	
-	public static final String APP_PROP_NAME_TIMESTAMP_LASTCHECK = "time_last_checked";
 
 	@Override
 	public void onReceive(final Context context, final Intent intent) {
@@ -55,21 +54,21 @@ public class OutgoingSmsReceiver extends BroadcastReceiver {
 
 			public OutgoingSmsLogger(Context context)
 				{
-					this.prefs = context.getSharedPreferences(InitApp.APP_FILE_PREFERENCES, Context.MODE_PRIVATE);
+					this.prefs = context.getSharedPreferences(App.APP_FILE_PREFERENCES, Context.MODE_PRIVATE);
 					this.context = context;
 				}
 
 			@Override
 			protected Void doInBackground(Void... params)
 				{
-					timeLastChecked = prefs.getLong(APP_PROP_NAME_TIMESTAMP_LASTCHECK, -1L);
+					timeLastChecked = prefs.getLong(App.APP_PROP_NAME_TIMESTAMP_LASTCHECK_OUTGOING_SMS, -1L);
 
 					LOG.debug("SMS Message Sended.");
 					List<Sms> messages;
 					try
 						{
 							messages = getOutgoingSms();
-							LOG.debug("Num SMS Message sended = {}", String.valueOf(messages.size()));
+							LOG.debug("Num SMS Message writed = {}", String.valueOf(messages.size()));
 
 							// valorizzo il nome del contatto associato al numero di telefono da cui giunge l'SMS
 							ContactManager contactManager = new ContactManager(context);
@@ -128,7 +127,7 @@ public class OutgoingSmsReceiver extends BroadcastReceiver {
 								}
 							while (smsCursor.moveToNext());
 							Editor editor = prefs.edit();
-							editor.putLong(APP_PROP_NAME_TIMESTAMP_LASTCHECK, timeLastChecked);
+							editor.putLong(App.APP_PROP_NAME_TIMESTAMP_LASTCHECK_OUTGOING_SMS, timeLastChecked);
 							editor.commit();
 						}
 					smsCursor.close();

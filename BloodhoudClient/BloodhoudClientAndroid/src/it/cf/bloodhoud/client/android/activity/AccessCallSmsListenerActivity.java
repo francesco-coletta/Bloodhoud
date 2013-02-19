@@ -1,5 +1,6 @@
 package it.cf.bloodhoud.client.android.activity;
 
+import it.cf.bloodhoud.client.android.App;
 import it.cf.bloodhoud.client.android.R;
 import it.cf.bloodhoud.client.android.receiver.InitApp;
 
@@ -24,7 +25,6 @@ public class AccessCallSmsListenerActivity
         extends Activity
         implements OnClickListener
 	{
-		static public final String APP_PROP_NAME_PASSWORD = "password";
 
 		static private final Logger LOG = LoggerFactory.getLogger(AccessCallSmsListenerActivity.class);
 		TextView messaggioEsitoTask;
@@ -52,7 +52,7 @@ public class AccessCallSmsListenerActivity
 						LOG.debug("Cliccato sul button OK");
 						if (isTypedPasswordCorrect(v))
 							{
-								this.startActivity(new Intent(this, ExportDataActivity.class));
+								this.startActivity(new Intent(this, ControlDataActivity.class));
 								this.finish();
 							}
 						else
@@ -76,11 +76,11 @@ public class AccessCallSmsListenerActivity
 				String typedPassword = password.getText().toString();
 				LOG.debug("Password inserita = {}", typedPassword);
 
-				SharedPreferences pref = v.getContext().getSharedPreferences(InitApp.APP_FILE_PREFERENCES, Context.MODE_PRIVATE);
-				if (pref.contains(APP_PROP_NAME_PASSWORD))
+				SharedPreferences pref = v.getContext().getSharedPreferences(App.APP_FILE_PREFERENCES, Context.MODE_PRIVATE);
+				if (pref.contains(App.APP_PROP_NAME_PASSWORD))
 					{
 						LOG.debug("La password è presente nel file delle preferenze");
-						String storedPassword = pref.getString(APP_PROP_NAME_PASSWORD, "");
+						String storedPassword = pref.getString(App.APP_PROP_NAME_PASSWORD, "");
 						LOG.debug("Stored password = {}", storedPassword);
 						isTypedPasswordCorrect = StringUtils.equals(typedPassword, storedPassword);
 					}

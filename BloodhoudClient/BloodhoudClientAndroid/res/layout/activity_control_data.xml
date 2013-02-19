@@ -5,26 +5,40 @@
     android:orientation="vertical">
     
     
-    <Button android:id="@+exportActivity/buttonExport" 
+    <Button android:id="@+controlActivity/buttonExport" 
         android:layout_width="wrap_content" 
         android:layout_height="wrap_content" 
         android:layout_marginLeft="18dp" 
         android:layout_marginTop="21dp" 
         android:text="@string/button_export"/>
+
+    <Button android:id="@+controlActivity/buttonExportDB" 
+        android:layout_width="wrap_content" 
+        android:layout_height="wrap_content" 
+        android:layout_marginLeft="18dp" 
+        android:layout_marginTop="21dp" 
+        android:text="@string/button_exportDb"/>
     
-    <Button android:id="@+exportActivity/buttonClear" 
+    <Button android:id="@+controlActivity/buttonSendAgaiDataToServer" 
+        android:layout_width="wrap_content" 
+        android:layout_height="wrap_content" 
+        android:layout_marginLeft="18dp" 
+        android:layout_marginTop="21dp" 
+        android:text="@string/button_SendAgainDataToServer"/>
+    
+    <Button android:id="@+controlActivity/buttonClear" 
         android:layout_width="wrap_content" 
         android:layout_height="wrap_content" 
         android:layout_marginTop="15dp" 
         android:text="@string/button_clear_logfile"/>
     
-    <Button android:id="@+exportActivity/buttonCancel" 
+    <Button android:id="@+controlActivity/buttonCancel" 
         android:layout_width="wrap_content" 
         android:layout_height="wrap_content" 
         android:layout_marginTop="15dp" 
         android:text="@string/button_cancel"/>
     
-    <TextView android:id="@+exportActivity/labelMessage" 
+    <TextView android:id="@+controlActivity/labelMessage" 
         android:layout_width="wrap_content" 
         android:layout_height="wrap_content" 
         android:layout_marginTop="19dp" 

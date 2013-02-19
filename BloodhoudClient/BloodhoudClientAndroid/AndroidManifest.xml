@@ -15,6 +15,8 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -33,6 +35,16 @@
             </intent-filter>
         </receiver>
 
+        
+        <!-- Send data to server-->        
+        <receiver android:name="it.cf.bloodhoud.client.android.receiver.SendDataToServerScheduleReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name="it.cf.bloodhoud.client.android.receiver.SendDataToServerReceiver" >
+        </receiver>
         
         <!-- Outgoing SMS -->
         <receiver android:name="it.cf.bloodhoud.client.android.receiver.OutgoingSmsScheduleReceiver" >
@@ -69,8 +81,8 @@
         </activity>
         
         <activity
-            android:name="it.cf.bloodhoud.client.android.activity.ExportDataActivity"
-            android:label="@string/title_activity_export_data_file" >
+            android:name="it.cf.bloodhoud.client.android.activity.ControlDataActivity"
+            android:label="@string/title_activity_control_data" >
         </activity>
     </application>
 
