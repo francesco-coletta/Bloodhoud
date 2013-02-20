@@ -136,7 +136,8 @@ app.get('/phones/phone-:imei/call', call.find);
 app.post('/phones', phone.create);
 
 // DELETE phone
-//app.delete('/phones/phone-:imei', phone.remove);
+//NB: chiave e non IMEI
+app.delete('/phones/phone-:id', phone.remove);
 
 
 // ADD new SMS

@@ -2,6 +2,7 @@ var phone = function (){
 		var CLASS = "phone";
 
 		var phoneDb = require('./phoneDb');
+		var utils = require('./utils');
 
 		/*
 		var findById = function(request, response)
@@ -69,15 +70,29 @@ var phone = function (){
 				
  				var phone = request.body;
 				console.log(METHOD + "Creating " + JSON.stringify(phone));
-				
-				phoneDb.create(
-					phone, 
-					function(err, phone)
-						{
-							console.log(METHOD + "Creato nuovo phone: " + JSON.stringify(phone));
-							response.send(phone);
-						}
-				);
+ 				if (typeof phone.imei !== 'undefined'){
+					phoneDb.findByImei(phone.imei, function(err, phone){
+							console.log(METHOD + 'Retrieved phone: ' + JSON.stringify(phone));
+							if (typeof phone !== 'undefined'){
+								console.log(METHOD + 'Il phone esiste già. Non lo ricreo.');
+								response.send(utils.returnResponse('OK', 'Il phone esiste già'));
+							}
+							else{
+								console.log(METHOD + 'Il phone NON esiste già. Lo creo.');
+								phoneDb.create(
+									phone, 
+									function(err, phone)
+										{
+											console.log(METHOD + "Creato nuovo phone: " + JSON.stringify(phone));
+											response.send(phone);
+										}
+								);
+							}
+					}); 					
+ 				}
+ 				else{
+ 					console.log(METHOD + "Phone post is undefined");
+ 				}
 			}
 			
 		var remove = function(request, response)
