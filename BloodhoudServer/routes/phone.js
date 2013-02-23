@@ -73,7 +73,7 @@ var phone = function (){
  				if (typeof phone.imei !== 'undefined'){
 					phoneDb.findByImei(phone.imei, function(err, phone){
 							console.log(METHOD + 'Retrieved phone: ' + JSON.stringify(phone));
-							if (typeof phone !== 'undefined'){
+							if (!phone){
 								console.log(METHOD + 'Il phone esiste già. Non lo ricreo.');
 								response.send(utils.returnResponse('OK', 'Il phone esiste già'));
 							}

@@ -33,6 +33,20 @@ var sms = function (){
 				});
 			};
 
+
+
+		var findAllHTML = function(request, response)
+			{
+				var METHOD = CLASS + ".findAllByIdPhone: ";
+				console.log(METHOD + 'Retrieved all sms');
+				smsDb.findAll(
+					function(err, sms){
+						response.render('sms.jade', {title: 'All sms', items: sms});
+					}
+				);
+			};
+
+
 		/*
 		var findAllByIdPhone = function(request, response)
 			{
@@ -137,6 +151,7 @@ var sms = function (){
 			findAll: findAll,
 			//findAllByIdPhone: findAllByIdPhone,
 			find: find,
+			findAllHTML: findAllHTML,
 			create: create
 		}
 }();
