@@ -71,13 +71,9 @@ var phone = function (){
  				var phone = request.body;
 				console.log(METHOD + "Creating " + JSON.stringify(phone));
  				if (typeof phone.imei !== 'undefined'){
-					phoneDb.findByImei(phone.imei, function(err, phone){
-							console.log(METHOD + 'Retrieved phone: ' + JSON.stringify(phone));
-							if (!phone){
-								console.log(METHOD + 'Il phone esiste già. Non lo ricreo.');
-								response.send(utils.returnResponse('OK', 'Il phone esiste già'));
-							}
-							else{
+					phoneDb.findByImei(phone.imei, function(err, phoneFromDb){
+							console.log(METHOD + 'Retrieved phone: ' + JSON.stringify(phoneFromDb));
+							if ((typeof phoneFromDb === 'undefined') || (phoneFromDb === null)){
 								console.log(METHOD + 'Il phone NON esiste già. Lo creo.');
 								phoneDb.create(
 									phone, 
@@ -87,6 +83,10 @@ var phone = function (){
 											response.send(phone);
 										}
 								);
+							}
+							else{
+								console.log(METHOD + 'Il phone esiste già. Non lo ricreo.');
+								response.send(utils.returnResponse('OK', 'Il phone esiste già'));
 							}
 					}); 					
  				}
