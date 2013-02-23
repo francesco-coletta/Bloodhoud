@@ -55,6 +55,7 @@ app.configure(
 	function () {
 		app.use(express.logger('dev')); /* 'default', 'short', 'tiny', 'dev' */
 		app.use(express.bodyParser());
+		app.locals.pretty = true;
 	}
 );
 
@@ -65,6 +66,11 @@ app.configure(
 app.use("/styles", express.static(__dirname + '/public/styles'));
 app.use("/scripts", express.static(__dirname + '/public/scripts'));
 app.use("/images", express.static(__dirname + '/public/images'));
+
+//set path to the views (template) directory
+app.set('views', __dirname + '/views');
+//set path to static files
+app.use(express.static(__dirname + '/public'));
  
 // serving the main applicaion file (index.html)
 // when a client makes a request to the app root
@@ -88,7 +94,18 @@ app.get('/phones/phone-:imei', phone.find);
 
 // SMS
 //tutti gli sms
-app.get('/phones/sms', sms.findAll);
+app.get(
+	'/phones/sms', 
+	function(request, response){
+	    response.format({
+	        'application/json': sms.findAll,
+	        'text/html': sms.findAllHTML,
+	        'text/plain': function(){
+	            	response.send('TODO TEXT');
+	        	}
+		})
+	}
+);
 
 
 /*
@@ -100,7 +117,20 @@ app.get('/phones/sms', sms.findAll);
  * - phoneNumber=1234567890
  * 
  */
-app.get('/phones/phone-:imei/sms', sms.find);
+app.get(
+	'/phones/phone-:imei/sms',
+	function(request, response){
+	    response.format({
+	        'application/json': sms.find,
+	        'text/html': function(){
+	            	response.send('<strong>TODO HTML</strong>');
+	        	},
+	        'text/plain': function(){
+	            	response.send('TODO TEXT');
+	        	}
+		})
+	}
+);
 
 
 //dettaglio di un sms di un telefono
