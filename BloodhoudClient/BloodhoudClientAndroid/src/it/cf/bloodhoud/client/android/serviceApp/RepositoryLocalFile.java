@@ -1,9 +1,9 @@
 package it.cf.bloodhoud.client.android.serviceApp;
 
+import it.cf.bloodhoud.client.android.Utils;
 import it.cf.bloodhoud.client.android.model.Call;
 import it.cf.bloodhoud.client.android.model.Phone;
 import it.cf.bloodhoud.client.android.model.Sms;
-import it.cf.bloodhoud.client.android.model.Utils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -40,14 +40,15 @@ public class RepositoryLocalFile implements RepositoryLocalWrite
             }
 
         @Override
-        public void writePhone(Phone phone)
+        public long writePhone(Phone phone)
             {
                 // TODO Auto-generated method stub
                 LOG.debug("TODO: to be implemented");
+                return 0;
             }
 
         @Override
-        public void writeSms(Sms sms)
+        public long writeSms(Sms sms)
             {
                 if (sms == null)
                     {
@@ -57,23 +58,13 @@ public class RepositoryLocalFile implements RepositoryLocalWrite
                     {
                         writeSingleSmsToFile(sms);
                     }
+                return 0;
             }
 
-        @Override
-        public void writeSms(List<Sms> smss)
-            {
-                if (smss == null)
-                    {
-                        LOG.error("Sms null");
-                    }
-                else
-                    {
-                        writeMultipleSmsToFile(smss);
-                    }
-            }
+
 
         @Override
-        public void writeCall(Call call)
+        public long writeCall(Call call)
             {
                 if (call == null)
                     {
@@ -83,6 +74,7 @@ public class RepositoryLocalFile implements RepositoryLocalWrite
                     {
                         writeSingleCallToFile(call);
                     }
+                return 0;
             }
 
         

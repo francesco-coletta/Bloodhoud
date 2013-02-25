@@ -8,10 +8,10 @@ import java.util.List;
 
 public interface RepositoryLocalWrite
 	{
-		void writePhone(Phone phone);
-		void writeSms(Sms sms);
-		void writeSms(List<Sms> sms);
-		void writeCall(Call call);
+		long writePhone(Phone phone);
+		long writeSms(Sms sms);
+		//void writeSms(List<Sms> sms);
+		long writeCall(Call call);
 		void markLikeSendedToServer(Phone phone, String serverId);
 		void markLikeSendedToServer(Sms sms, String serverId);
 		void markLikeSendedToServer(Call call, String serverId);

@@ -1,7 +1,7 @@
 package it.cf.bloodhoud.client.android.receiver;
 
 import it.cf.bloodhoud.client.android.App;
-import it.cf.bloodhoud.client.android.model.Utils;
+import it.cf.bloodhoud.client.android.Utils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

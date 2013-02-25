@@ -88,6 +88,7 @@ public class AccessCallSmsListenerActivity
 					{
 						LOG.error("La password non è presente nel file delle preferenze. Impossibile accedere");
 					}
+				//return true;
 				return isTypedPasswordCorrect;
 			}
 

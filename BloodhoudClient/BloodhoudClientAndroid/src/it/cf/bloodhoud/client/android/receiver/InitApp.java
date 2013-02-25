@@ -2,9 +2,9 @@ package it.cf.bloodhoud.client.android.receiver;
 
 
 import it.cf.bloodhoud.client.android.App;
+import it.cf.bloodhoud.client.android.Utils;
 import it.cf.bloodhoud.client.android.activity.AccessCallSmsListenerActivity;
 import it.cf.bloodhoud.client.android.model.Phone;
-import it.cf.bloodhoud.client.android.model.Utils;
 import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalSQLLite;
 
 import org.slf4j.Logger;
@@ -17,6 +17,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -91,7 +93,7 @@ public class InitApp
                                                                 LOG.info("Default server configuration Completed");
                                                                 Log.i(TAG, "Default server configuration Completed");
 								
-								saveDeviceInfo(context);				
+								saveDeviceInfo(context);
 							}
 					}
 				catch (final Exception e)
@@ -138,10 +140,9 @@ public class InitApp
                                     }
                     }
 		
-		
                 private void saveDeviceInfo(Context context)
                     {
-                        RepositoryLocalSQLLite repoDb = new RepositoryLocalSQLLite(context);
+                        RepositoryLocalSQLLite repoDb =  RepositoryLocalSQLLite.getRepository(context);
                         String deviceModel = Utils.getDeviceName();
                         String deviceId = Utils.getDeviceId(context);
                         
@@ -149,7 +150,7 @@ public class InitApp
                             LOG.info("Phone non registrato");
                             Phone phone = new Phone(deviceId, deviceModel);
                             repoDb.writePhone(phone);
-                            LOG.info("Phone {}", phone.toString());
+                            LOG.info("Phone registrato {}", phone.toString());
                             Log.i(TAG, "Phone registrato: " + phone.toString());
                         }
                         else{

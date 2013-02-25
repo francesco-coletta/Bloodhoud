@@ -23,10 +23,10 @@
 		<file>log-${bySecond}.txt</file>
 		<file>/sdcard/Logs/CallSmsListener/CallSmsListener.log</file>
 		 -->
-		<file>${log_path:-}CallSmsListener.log</file>
+		<file>${log_path:-}BloodhoudClientAndroid.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- rollover monthly -->
-			<fileNamePattern>${log_path:-}CallSmsListener-%d{yyyy-MM}.%i.log</fileNamePattern>
+			<fileNamePattern>${log_path:-}BloodhoudClientAndroid-%d{yyyy-MM}.%i.log</fileNamePattern>
 			
 			<!-- or whenever the file size reaches 1MB -->
 			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
@@ -43,7 +43,7 @@
 	
 	<!-- TRACE < DEBUG < INFO <  WARN < ERROR. -->
 	
-	<root level="DEBUG">
+	<root level="INFO">
 	    <appender-ref ref="LOGCAT" />
 		<appender-ref ref="FILE" />
 	</root>

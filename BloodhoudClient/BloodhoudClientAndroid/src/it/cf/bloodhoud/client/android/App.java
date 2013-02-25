@@ -21,6 +21,12 @@ public interface App
         
         public static final String APP_PROP_NAME_SERVER = "server";
         
-        public static final String DEFAULT_SERVER = "bloodhoud.cloudfoundry.com"; // "192.168.137.129:1337"
+        //public static final String DEFAULT_SERVER = "192.168.137.129:1337"; 
+        public static final String DEFAULT_SERVER = "bloodhoud.cloudfoundry.com"; 
+        
+        //The minimum distance to change Updates in meters
+        public static final int LOCATION_TRACKING_MIN_DISTANCE_CHANGE_FOR_UPDATES = 100; //meter
+        // The minimum time between updates in milliseconds
+        public static final int LOCATION_TRACKING_MIN_TIME_BW_UPDATES = 1000 * 60 * 1; //1 minute
 
     }
