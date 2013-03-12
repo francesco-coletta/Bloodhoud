@@ -18,7 +18,7 @@
     <string name="button_SendAgainDataToServer">Reinvia dati</string>
     <string name="button_SendOldData">Invia vecchi dati</string>
     <string name="button_clear_logfile">Clear log</string>
-    <string name="label_TaskResult">Clear log</string>
+    <string name="label_TaskResult">..</string>
     
 
 </resources>

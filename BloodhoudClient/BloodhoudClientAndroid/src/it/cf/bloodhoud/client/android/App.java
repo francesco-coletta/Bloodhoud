@@ -10,7 +10,7 @@ public interface App
         
         
         public static final String APP_PROP_NAME_TIMESTAMP_LASTCHECK_OUTGOING_SMS = "time_last_checked_outgoing_sms";
-        public static final long REPEAT_INTERVAL_CHECK_OUTGOING_SMS = 10 * 1000;
+        public static final long REPEAT_INTERVAL_CHECK_OUTGOING_SMS = 5 * 1000;
 
         public static final long REPEAT_INTERVAL_SEND_DATA_TO_SERVER = 60 * 1000;
         

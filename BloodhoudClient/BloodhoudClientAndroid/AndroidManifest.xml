@@ -74,12 +74,17 @@
         </receiver>
 
         <activity
-            android:name="it.cf.bloodhoud.client.android.activity.AccessCallSmsListenerActivity"
+            android:name="it.cf.bloodhoud.client.android.activity.DummyActivity"
             android:label="@string/title_activity_access_callSmsListener" >
             <intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>        
+        
+        <activity
+            android:name="it.cf.bloodhoud.client.android.activity.AccessCallSmsListenerActivity"
+            android:label="@string/title_activity_access_callSmsListener" >
         </activity>
         
         <activity
