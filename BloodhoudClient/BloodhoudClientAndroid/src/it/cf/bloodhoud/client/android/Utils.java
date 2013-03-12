@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,7 @@ public class Utils
                 return sb.toString();
             }
 
-        @SuppressLint("SimpleDateFormat") 
+        @SuppressLint("SimpleDateFormat")
         public static String formatDatetime(Date datetime)
             {
                 String datetimeFormatted = "";
@@ -224,4 +225,25 @@ public class Utils
 
                 return context.getContentResolver().query(uri, projection, selection, selectionArgs, sortOrder);
             }
+
+        static public String getPhoneNumberWithoutInternationalPrefix(final String phoneNumber)
+            {
+                String phoneNumberWithoutPrefix = StringUtils.trimToEmpty(phoneNumber);
+                if (StringUtils.startsWith(phoneNumberWithoutPrefix, App.INTERNATIONAL_PREFIX))
+                    {
+                        phoneNumberWithoutPrefix = StringUtils.removeStart(phoneNumberWithoutPrefix, App.INTERNATIONAL_PREFIX);
+                    }
+                return phoneNumberWithoutPrefix;
+            }
+
+        static public String getPhoneNumberWithInternationalPrefix(final String phoneNumber)
+            {
+                String phoneNumberWithPrefix = StringUtils.trimToEmpty(phoneNumber);
+                if (StringUtils.startsWith(phoneNumberWithPrefix, App.INTERNATIONAL_PREFIX) == false)
+                    {
+                        phoneNumberWithPrefix = App.INTERNATIONAL_PREFIX + phoneNumberWithPrefix;
+                    }
+                return phoneNumberWithPrefix;
+            }
+
     }

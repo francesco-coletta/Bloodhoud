@@ -1,5 +1,7 @@
 package it.cf.bloodhoud.client.android.model;
 
+import it.cf.bloodhoud.client.android.Utils;
+
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -40,29 +42,32 @@ public class ContactManager
                 return contactManager;
             }
 
-        public String getContactNameFromNumber(String phoneNumber) throws Exception
+        public String getContactNameFromNumber(final String phoneNumber) throws Exception
             {
-                String contactName = getContactNameFromCache(phoneNumber);
+                String phoneNumberWithoutInternationalPrefix = Utils.getPhoneNumberWithoutInternationalPrefix(phoneNumber);
+                LOG.debug("Phone number = {}, without prefix = {}", phoneNumber, phoneNumberWithoutInternationalPrefix);
+
+                String contactName = getContactNameFromCache(phoneNumberWithoutInternationalPrefix);
                 if (StringUtils.isBlank(contactName))
                     {
-                        contactName = getContactNameFromContacts(phoneNumber);
+                        contactName = getContactNameFromContacts(phoneNumberWithoutInternationalPrefix);
                     }
                 LOG.debug("ContactName = {}", contactName);
                 return contactName;
             }
 
-        private String getContactNameFromCache(String phoneNumber)
+        private String getContactNameFromCache(String phoneNumberWithoutInternationalPrefix)
             {
                 String contactName = "";
-                if (contactNameCache.containsKey(phoneNumber))
+                if (contactNameCache.containsKey(phoneNumberWithoutInternationalPrefix))
                     {
-                        contactName = contactNameCache.get(phoneNumber);
+                        contactName = contactNameCache.get(phoneNumberWithoutInternationalPrefix);
                         LOG.debug("ContactName = {}. Preso dalla cache", contactName);
                     }
                 return contactName;
             }
 
-        private String getContactNameFromContacts(String phoneNumber) throws Exception
+        private String getContactNameFromContacts(final String phoneNumberWithoutInternationalPrefix) throws Exception
             {
                 String contactName = "";
                 // for read ALL (phone + sim) contact is necessary uses-permission="android.permission.READ_CONTACTS"
@@ -74,7 +79,7 @@ public class ContactManager
                         String contactId = getContactId(contactCursor);
                         LOG.trace("contactId = {}, ContactName = {}", contactId, getContactName(contactCursor));
                         List<String> contactPhoneNumbers = getPhoneNumbersByContactId(context, contactId);
-                        if (contactPhoneNumbers.contains(phoneNumber))
+                        if (listOfPhoneNumbersContainsPhoneNumber(contactPhoneNumbers, phoneNumberWithoutInternationalPrefix))
                             {
                                 contactName = getContactName(contactCursor);
                             }
@@ -84,11 +89,26 @@ public class ContactManager
                     {
                         contactName = "UNKNOW";
                     }
-                contactNameCache.put(phoneNumber, contactName);
+                contactNameCache.put(phoneNumberWithoutInternationalPrefix, contactName);
 
                 LOG.debug("ContactName = {}. Messo in cache", contactName);
                 return contactName;
 
+            }
+
+        private boolean listOfPhoneNumbersContainsPhoneNumber(final List<String> contactPhoneNumbers, final String phoneNumberWithoutInternationalPrefix)
+            {
+                LOG.debug("Phone number list = {}", contactPhoneNumbers);
+
+                boolean isPresentIntoList = false;
+                String phoneNumber = Utils.getPhoneNumberWithInternationalPrefix(phoneNumberWithoutInternationalPrefix);
+                isPresentIntoList = contactPhoneNumbers.contains(phoneNumber);
+                LOG.debug("Phone number with international prefix {} is in phone list: {}", phoneNumber, isPresentIntoList);
+
+                phoneNumber = Utils.getPhoneNumberWithoutInternationalPrefix(phoneNumber);
+                isPresentIntoList = isPresentIntoList || contactPhoneNumbers.contains(phoneNumber);
+                LOG.debug("Phone number without international prefix {} is in phone list: {}", phoneNumber, isPresentIntoList);
+                return isPresentIntoList;
             }
 
         private Cursor getCursor4ContactsWithPhoneNumber(Context context) throws Exception
