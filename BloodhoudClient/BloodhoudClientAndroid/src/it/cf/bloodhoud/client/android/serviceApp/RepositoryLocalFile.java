@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
 import java.util.Date;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,8 +60,6 @@ public class RepositoryLocalFile implements RepositoryLocalWrite
                 return 0;
             }
 
-
-
         @Override
         public long writeCall(Call call)
             {
@@ -77,12 +74,10 @@ public class RepositoryLocalFile implements RepositoryLocalWrite
                 return 0;
             }
 
-        
-        
         @Override
         public void markLikeSendedToServer(Phone phone, String serverId)
             {
-                LOG.warn("Metodo non implementato per il file");                
+                LOG.warn("Metodo non implementato per il file");
             }
 
         @Override
@@ -96,7 +91,7 @@ public class RepositoryLocalFile implements RepositoryLocalWrite
             {
                 LOG.warn("Metodo non implementato per il file");
             }
-        
+
         @Override
         public void markDataForSendedAgainToServer()
             {
@@ -114,29 +109,6 @@ public class RepositoryLocalFile implements RepositoryLocalWrite
                                 LOG.debug("File <{}> opened", FILE_NAME);
                                 outputStream.write(call.toString().getBytes());
                                 LOG.info("Writed to file {} this call {}", FILE_NAME, call.toString());
-                                outputStream.close();
-                                LOG.debug("File <{}> closed", FILE_NAME);
-                            }
-                    }
-                catch (Exception e)
-                    {
-                        LOG.error(e.getMessage());
-                    }
-            }
-
-        private void writeMultipleSmsToFile(List<Sms> smss)
-            {
-                FileOutputStream outputStream;
-                try
-                    {
-                        outputStream = openOutputFile(FILE_NAME);
-                        if (outputStream != null)
-                            {
-                                LOG.debug("File <{}> opened", FILE_NAME);
-                                for (Sms smsMessage : smss)
-                                    {
-                                        writeSingleSmsToFile(outputStream, smsMessage);
-                                    }
                                 outputStream.close();
                                 LOG.debug("File <{}> closed", FILE_NAME);
                             }

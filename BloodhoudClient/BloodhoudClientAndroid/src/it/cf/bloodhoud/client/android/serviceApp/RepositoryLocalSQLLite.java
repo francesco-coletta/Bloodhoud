@@ -1,7 +1,6 @@
 package it.cf.bloodhoud.client.android.serviceApp;
 
 import it.cf.bloodhoud.client.android.App;
-import it.cf.bloodhoud.client.android.Utils;
 import it.cf.bloodhoud.client.android.dao.TableCall;
 import it.cf.bloodhoud.client.android.dao.TablePhone;
 import it.cf.bloodhoud.client.android.dao.TableSms;
@@ -11,9 +10,7 @@ import it.cf.bloodhoud.client.android.model.Phone;
 import it.cf.bloodhoud.client.android.model.Sms;
 import it.cf.bloodhoud.client.android.model.SmsFactory;
 
-import java.io.FileOutputStream;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
@@ -37,7 +34,6 @@ public class RepositoryLocalSQLLite extends SQLiteOpenHelper implements Reposito
         static private RepositoryLocalSQLLite repo = null;
         
         static private SQLiteDatabase dbWrite = null;
-        static private SQLiteDatabase dbRead = null;
 
         private RepositoryLocalSQLLite(Context context)
             {

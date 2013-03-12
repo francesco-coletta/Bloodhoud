@@ -3,8 +3,6 @@ package it.cf.bloodhoud.client.android.receiver;
 import it.cf.bloodhoud.client.android.model.ContactManager;
 import it.cf.bloodhoud.client.android.model.Sms;
 import it.cf.bloodhoud.client.android.model.SmsFactory;
-import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalWrite;
-import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalFile;
 import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalSQLLite;
 
 import java.util.ArrayList;

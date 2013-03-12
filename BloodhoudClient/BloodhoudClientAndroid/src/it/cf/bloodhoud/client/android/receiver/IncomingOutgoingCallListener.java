@@ -1,11 +1,9 @@
 package it.cf.bloodhoud.client.android.receiver;
 
 import it.cf.bloodhoud.client.android.model.Call;
+import it.cf.bloodhoud.client.android.model.Call.CallDirection;
 import it.cf.bloodhoud.client.android.model.CallFactory;
 import it.cf.bloodhoud.client.android.model.ContactManager;
-import it.cf.bloodhoud.client.android.model.Call.CallDirection;
-import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalWrite;
-import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalFile;
 import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalSQLLite;
 
 import org.apache.commons.lang3.StringUtils;
@@ -21,7 +19,6 @@ public class IncomingOutgoingCallListener extends BroadcastReceiver
     {
         static private final Logger LOG                      = LoggerFactory.getLogger(IncomingOutgoingCallListener.class);
         private static final String ACTION_NEW_OUTGOING_CALL = "android.intent.action.NEW_OUTGOING_CALL";
-        private static final String ACTION_PHONE_STATE       = "android.intent.action.PHONE_STATE";
 
         @Override
         public void onReceive(Context context, Intent intent)

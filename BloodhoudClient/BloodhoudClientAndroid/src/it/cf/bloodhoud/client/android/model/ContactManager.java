@@ -16,10 +16,10 @@ import android.provider.ContactsContract;
 
 public class ContactManager
     {
-        static private final Logger   LOG            = LoggerFactory.getLogger(ContactManager.class);
-        private Context         context        = null;
-        private static ContactManager contactManager = null;
-        private Map<String, String> contactNameCache = new Hashtable<String, String>();
+        static private final Logger   LOG              = LoggerFactory.getLogger(ContactManager.class);
+        private Context               context          = null;
+        private static ContactManager contactManager   = null;
+        private Map<String, String>   contactNameCache = new Hashtable<String, String>();
 
         private ContactManager(final Context context) throws Exception
             {
@@ -35,7 +35,7 @@ public class ContactManager
             {
                 if (contactManager == null)
                     {
-                        contactManager = new  ContactManager(context);
+                        contactManager = new ContactManager(context);
                     }
                 return contactManager;
             }
@@ -43,51 +43,53 @@ public class ContactManager
         public String getContactNameFromNumber(String phoneNumber) throws Exception
             {
                 String contactName = getContactNameFromCache(phoneNumber);
-                if (StringUtils.isBlank(contactName)){
-                    contactName = getContactNameFromContacts(phoneNumber);
-                }
+                if (StringUtils.isBlank(contactName))
+                    {
+                        contactName = getContactNameFromContacts(phoneNumber);
+                    }
                 LOG.debug("ContactName = {}", contactName);
                 return contactName;
             }
-        
-        
-        private String getContactNameFromCache(String phoneNumber){
-            String contactName = "";
-            if (contactNameCache.containsKey(phoneNumber)){
-                contactName =contactNameCache.get(phoneNumber); 
-                LOG.debug("ContactName = {}. Preso dalla cache", contactName);
-            }
-            return contactName;
-        }        
-        
-        private String getContactNameFromContacts(String phoneNumber) throws Exception{
-            String contactName = "";
-            // for read ALL (phone + sim) contact is necessary uses-permission="android.permission.READ_CONTACTS"
-            // Cursor contactCursor = getContactsCursor(context);
-            Cursor contactCursor = getCursor4ContactsWithPhoneNumber(context);
-            LOG.trace("Num conctact with phone number = {}", contactCursor.getCount());
-            while (contactCursor.moveToNext())
-                {
-                    String contactId = getContactId(contactCursor);
-                    LOG.trace("contactId = {}, ContactName = {}", contactId, getContactName(contactCursor));
-                    List<String> contactPhoneNumbers = getPhoneNumbersByContactId(context, contactId);
-                    if (contactPhoneNumbers.contains(phoneNumber))
-                        {
-                            contactName = getContactName(contactCursor);
-                        }
-                }
-            contactCursor.close();
-            if (contactName.length() == 0)
-                {
-                    contactName = "UNKNOW";
-                }
-            contactNameCache.put(phoneNumber, contactName);
-            
-            LOG.debug("ContactName = {}. Messo in cache", contactName);
-            return contactName;
-            
-        }        
 
+        private String getContactNameFromCache(String phoneNumber)
+            {
+                String contactName = "";
+                if (contactNameCache.containsKey(phoneNumber))
+                    {
+                        contactName = contactNameCache.get(phoneNumber);
+                        LOG.debug("ContactName = {}. Preso dalla cache", contactName);
+                    }
+                return contactName;
+            }
+
+        private String getContactNameFromContacts(String phoneNumber) throws Exception
+            {
+                String contactName = "";
+                // for read ALL (phone + sim) contact is necessary uses-permission="android.permission.READ_CONTACTS"
+                // Cursor contactCursor = getContactsCursor(context);
+                Cursor contactCursor = getCursor4ContactsWithPhoneNumber(context);
+                LOG.trace("Num conctact with phone number = {}", contactCursor.getCount());
+                while (contactCursor.moveToNext())
+                    {
+                        String contactId = getContactId(contactCursor);
+                        LOG.trace("contactId = {}, ContactName = {}", contactId, getContactName(contactCursor));
+                        List<String> contactPhoneNumbers = getPhoneNumbersByContactId(context, contactId);
+                        if (contactPhoneNumbers.contains(phoneNumber))
+                            {
+                                contactName = getContactName(contactCursor);
+                            }
+                    }
+                contactCursor.close();
+                if (contactName.length() == 0)
+                    {
+                        contactName = "UNKNOW";
+                    }
+                contactNameCache.put(phoneNumber, contactName);
+
+                LOG.debug("ContactName = {}. Messo in cache", contactName);
+                return contactName;
+
+            }
 
         private Cursor getCursor4ContactsWithPhoneNumber(Context context) throws Exception
             {
@@ -114,38 +116,6 @@ public class ContactManager
                  * sortOrder); cursor=cl.loadInBackground();
                  */
                 return cursor;
-            }
-
-        private Cursor getContactsCursor(Context context) throws Exception
-            {
-                if (context == null)
-                    {
-                        LOG.error("Il context non deve essere null");
-                        throw new Exception("Il context non deve essere null");
-                    }
-                return context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
-            }
-
-        private boolean currentContactHaveAtLeastOnePhoneNumber(Cursor contactCursor) throws Exception
-            {
-                if ((contactCursor == null) || (contactCursor.isClosed()))
-                    {
-                        LOG.error("Il cursore non deve essere null o  chiuso");
-                        throw new Exception("Il cursore non deve essere null o  chiuso");
-                    }
-
-                boolean phoneNumberExists = false;
-                try
-                    {
-                        String hasPhone = getContactHasPhoneNumber(contactCursor);
-                        phoneNumberExists = Boolean.parseBoolean(hasPhone);
-                    }
-                catch (Exception e)
-                    {
-                        LOG.error(e.getMessage());
-                        phoneNumberExists = false;
-                    }
-                return phoneNumberExists;
             }
 
         private List<String> getPhoneNumbersByContactId(Context context, String contactId) throws Exception
@@ -216,11 +186,6 @@ public class ContactManager
             {
                 // return getStringValueFromColumn(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, contactCursor);
                 return getStringValueFromColumn(ContactsContract.Contacts.DISPLAY_NAME, contactCursor);
-            }
-
-        private String getContactHasPhoneNumber(Cursor contactCursor) throws Exception
-            {
-                return getStringValueFromColumn(ContactsContract.Contacts.HAS_PHONE_NUMBER, contactCursor);
             }
 
         private String getPhoneNumber(Cursor contactCursor) throws Exception

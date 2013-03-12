@@ -15,35 +15,27 @@ import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalWrite;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 public class ControlDataActivity extends Activity implements OnClickListener
     {

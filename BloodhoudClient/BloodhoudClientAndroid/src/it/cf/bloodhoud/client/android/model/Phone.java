@@ -3,7 +3,6 @@ package it.cf.bloodhoud.client.android.model;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.simpleframework.xml.Element;
 
 public class Phone
     {

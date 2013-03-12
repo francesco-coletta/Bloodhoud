@@ -1,13 +1,12 @@
 package it.cf.bloodhoud.client.android.model;
 
 
+import it.cf.bloodhoud.client.android.model.Call.CallDirection;
+import it.cf.bloodhoud.client.android.model.Call.CallState;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import it.cf.bloodhoud.client.android.model.Call.CallDirection;
-import it.cf.bloodhoud.client.android.model.Call.CallState;
-import it.cf.bloodhoud.client.android.model.Sms.SmsDirection;
 
 import android.content.Intent;
 import android.os.Bundle;

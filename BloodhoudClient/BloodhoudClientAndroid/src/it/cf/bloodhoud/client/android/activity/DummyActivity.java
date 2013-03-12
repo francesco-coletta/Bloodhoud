@@ -2,10 +2,6 @@ package it.cf.bloodhoud.client.android.activity;
 
 import it.cf.bloodhoud.client.android.R;
 import it.cf.bloodhoud.client.android.Utils;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -17,7 +13,7 @@ import android.widget.TextView;
 public class DummyActivity extends Activity implements OnClickListener
     {
 
-        static private final Logger LOG = LoggerFactory.getLogger(DummyActivity.class);
+        //static private final Logger LOG = LoggerFactory.getLogger(DummyActivity.class);
         TextView                    messaggioEsitoTask;
 
         @Override

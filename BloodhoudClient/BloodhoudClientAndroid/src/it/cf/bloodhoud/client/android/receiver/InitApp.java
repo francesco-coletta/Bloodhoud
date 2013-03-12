@@ -3,24 +3,17 @@ package it.cf.bloodhoud.client.android.receiver;
 
 import it.cf.bloodhoud.client.android.App;
 import it.cf.bloodhoud.client.android.Utils;
-import it.cf.bloodhoud.client.android.activity.AccessCallSmsListenerActivity;
 import it.cf.bloodhoud.client.android.model.Phone;
 import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalSQLLite;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.Build;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 
 public class InitApp

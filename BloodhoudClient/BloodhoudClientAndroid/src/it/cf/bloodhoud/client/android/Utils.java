@@ -1,7 +1,4 @@
-package it.cf.bloodhoud.client.android.model;
-
-import it.cf.bloodhoud.client.android.App;
-import it.cf.bloodhoud.client.android.activity.ControlDataActivity;
+package it.cf.bloodhoud.client.android;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,20 +8,22 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.GregorianCalendar;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.database.Cursor;
 
+import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.telephony.TelephonyManager;
 
 public class Utils
     {
-        static private final Logger LOG                 = LoggerFactory.getLogger(Utils.class);
+        static private final Logger LOG = LoggerFactory.getLogger(Utils.class);
 
         public static String getTab(final int numTabs)
             {
@@ -46,6 +45,7 @@ public class Utils
                 return sb.toString();
             }
 
+        @SuppressLint("SimpleDateFormat") 
         public static String formatDatetime(Date datetime)
             {
                 String datetimeFormatted = "";
@@ -131,7 +131,6 @@ public class Utils
                     }
             }
 
-        
         public static void cleanChacheDirIntoExternalStorage(Context context)
             {
                 LOG.debug("Pulisco la directory <{}>", context.getExternalCacheDir());
@@ -142,8 +141,7 @@ public class Utils
                     }
                 LOG.debug("Eliminati {} file", files.length);
             }
-        
-        
+
         public static boolean isExternalStorageAvailableAndWriteable()
             {
                 boolean mExternalStorageAvailable = false;
@@ -169,5 +167,61 @@ public class Utils
                 return mExternalStorageWriteable;
             }
 
-        
+        public static Cursor getSmsAllCursor(Context context)
+            {
+                // Retrieves the URI, you can select a different content address depending on which SMS you want
+                // 1. Inbox = "content://sms/inbox"
+                // 2. Failed = "content://sms/failed"
+                // 3. Queued = "content://sms/queued"
+                // 4. Sent = "content://sms/sent"
+                // 5. Draft = "content://sms/draft"
+                // 6. Outbox = "content://sms/outbox"
+                // 7. Undelivered = "content://sms/undelivered"
+                // 8. All = "content://sms/all"
+                // 9. Conversations = "content://sms/conversations"
+
+                // SMS type (TextBasedSmsColumns )
+                // MESSAGE_TYPE_ALL = 0;
+                // MESSAGE_TYPE_INBOX = 1;
+                // MESSAGE_TYPE_SENT = 2;
+                // MESSAGE_TYPE_DRAFT = 3;
+                // MESSAGE_TYPE_OUTBOX = 4;
+                // MESSAGE_TYPE_FAILED = 5; // for failed outgoing messages
+                // MESSAGE_TYPE_QUEUED = 6; // for messages to send later
+
+                // Starting from myCursor(0) to myCursor(15):
+                // 0: _id (long)
+                // 1: thread_id (long)
+                // 2: address (String)
+                // 3: person (String)
+                // 4: date (long)
+                // 5: protocol
+                // 6: read
+                // 7: status
+                // 8: type
+                // 9: reply_path_present
+                // 10: subject (String)
+                // 11: body (String)
+                // 12: service_center
+                // 13: locked
+                // 14: error_code
+                // 15: seen
+
+                String smsDate = "date";
+                String smsAddress = "address";
+                // String smsPerson = "person";
+                String smsType = "type";
+                String smsBody = "body";
+
+                // Uri smsUri = Uri.parse("content://sms/all");
+
+                // Retrieves all SMS (if you want only unread SMS, put "read = 0" for the 3rd parameter)
+                Uri uri = Uri.parse("content://sms/");
+                String[] projection = new String[] { smsDate, smsAddress, smsBody, smsType };
+                String selection = null; // smsType + " = ? AND " + smsDate + " > ?";
+                String[] selectionArgs = null; // new String[] { "2", String.valueOf(timeLastChecked) };
+                String sortOrder = null; // smsDate + " DESC";
+
+                return context.getContentResolver().query(uri, projection, selection, selectionArgs, sortOrder);
+            }
     }

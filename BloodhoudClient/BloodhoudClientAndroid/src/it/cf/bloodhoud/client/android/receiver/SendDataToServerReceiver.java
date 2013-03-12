@@ -1,52 +1,43 @@
 package it.cf.bloodhoud.client.android.receiver;
 
+import it.cf.bloodhoud.client.android.App;
+import it.cf.bloodhoud.client.android.Utils;
+import it.cf.bloodhoud.client.android.model.Call;
+import it.cf.bloodhoud.client.android.model.Phone;
+import it.cf.bloodhoud.client.android.model.Sms;
+import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalSQLLite;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
-
-import it.cf.bloodhoud.client.android.App;
-import it.cf.bloodhoud.client.android.Utils;
-import it.cf.bloodhoud.client.android.model.Call;
-import it.cf.bloodhoud.client.android.model.ContactManager;
-import it.cf.bloodhoud.client.android.model.Phone;
-import it.cf.bloodhoud.client.android.model.Sms;
-import it.cf.bloodhoud.client.android.model.SmsFactory;
-import it.cf.bloodhoud.client.android.serviceApp.RepositoryLocalSQLLite;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
-import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.SystemClock;
-import android.util.Log;
 
-public class SendDataToServerReceiver extends BroadcastReceiver
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@SuppressLint("DefaultLocale") public class SendDataToServerReceiver extends BroadcastReceiver
     {
         static private final Logger LOG = LoggerFactory.getLogger(SendDataToServerReceiver.class);
 
@@ -315,7 +306,7 @@ public class SendDataToServerReceiver extends BroadcastReceiver
                         StringBuilder postParam = new StringBuilder();
                         // you need to encode ONLY the values of the parameters
                         // "direction=outgoing&phoneNumber=0123456789&timestamp=YYYY-MM-DDTHH:mm:ss.000Z&text=sms numero 1"
-                        postParam.append("direction=").append(URLEncoder.encode(sms.getDirection().name().toLowerCase(), UTF));
+                        postParam.append("direction=").append(URLEncoder.encode(sms.getDirection().name().toLowerCase(Locale.US), UTF));
                         postParam.append("&");
                         postParam.append("phoneNumber=").append(URLEncoder.encode(sms.getPhoneNumber(), UTF));
                         postParam.append("&");
@@ -379,6 +370,7 @@ public class SendDataToServerReceiver extends BroadcastReceiver
                 private String parseServerResponseAndGetRemoteId(String response) throws JsonParseException, JsonMappingException, IOException
                     {
                         // parsing JSON server response
+                        @SuppressWarnings("unchecked")
                         Map<String, Object> responseData = mapper.readValue(response, Map.class);
                         String timeRecord = (String) responseData.get("timeRecord");
                         String serverId = (String) responseData.get("_id");
