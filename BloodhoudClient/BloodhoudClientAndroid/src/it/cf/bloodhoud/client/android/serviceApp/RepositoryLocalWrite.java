@@ -14,4 +14,5 @@ public interface RepositoryLocalWrite
 		void markLikeSendedToServer(Sms sms, String serverId);
 		void markLikeSendedToServer(Call call, String serverId);
 		void markDataForSendedAgainToServer();
+		void markPhoneLikeNotSendedToServer();
 	}

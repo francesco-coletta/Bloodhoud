@@ -42,6 +42,13 @@
 	        android:layout_marginTop="21dp" 
 	        android:text="@string/button_SendOldData"/>
 	    
+	    <Button android:id="@+controlActivity/buttonSendAgainPhoneToServer" 
+	        android:layout_width="wrap_content" 
+	        android:layout_height="wrap_content" 
+	        android:layout_marginLeft="18dp" 
+	        android:layout_marginTop="21dp" 
+	        android:text="@string/button_SendAgainPhoneToServer"/>	    
+	    
 	    <Button android:id="@+controlActivity/buttonClear" 
 	        android:layout_width="wrap_content" 
 	        android:layout_height="wrap_content" 

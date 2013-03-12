@@ -15,8 +15,9 @@
     <string name="title_activity_control_data">Gestione dati</string>
     <string name="button_export">Export</string>
     <string name="button_exportDb">Export file DB</string>
-    <string name="button_SendAgainDataToServer">Reinvia dati</string>
-    <string name="button_SendOldData">Invia vecchi dati</string>
+    <string name="button_SendAgainDataToServer">Reinvia tutti i dati al server</string>
+    <string name="button_SendAgainPhoneToServer">Reinvia phone al server</string>
+    <string name="button_SendOldData">Carica vecchi dati in db ed invia al server</string>
     <string name="button_clear_logfile">Clear log</string>
     <string name="label_TaskResult">..</string>
     

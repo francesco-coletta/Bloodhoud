@@ -98,6 +98,12 @@ public class RepositoryLocalFile implements RepositoryLocalWrite
                 LOG.warn("Metodo non implementato per il file");
             }
 
+        @Override
+        public void markPhoneLikeNotSendedToServer()
+            {
+                LOG.warn("Metodo non implementato per il file");
+            }
+
         private void writeSingleCallToFile(Call call)
             {
                 try

@@ -78,6 +78,10 @@ public class ControlDataActivity extends Activity implements OnClickListener
 
                 Button buttonSendAgaiDataToServer = (Button) findViewById(R.controlActivity.buttonSendAgaiDataToServer);
                 buttonSendAgaiDataToServer.setOnClickListener(this);
+                
+                Button buttonSendAgainPhoneToServer = (Button) findViewById(R.controlActivity.buttonSendAgainPhoneToServer);
+                buttonSendAgainPhoneToServer.setOnClickListener(this);
+                
             }
 
         @Override
@@ -103,6 +107,10 @@ public class ControlDataActivity extends Activity implements OnClickListener
                 else if (v.getId() == R.controlActivity.buttonSendAgaiDataToServer)
                     {
                         new ConfigureDataForSendItAgainDataToServerTask(v.getContext()).execute();
+                    }
+                else if (v.getId() == R.controlActivity.buttonSendAgainPhoneToServer)
+                    {
+                        new ConfigurePhoneForSendItAgainToServerTask(v.getContext()).execute();
                     }
                 else if (v.getId() == R.controlActivity.buttonSendOldData)
                     {
@@ -411,6 +419,53 @@ public class ControlDataActivity extends Activity implements OnClickListener
                         super.onPostExecute(result);
                     }
             }// ConfigureDataForSendItAgainDataToServerTask Class
+        
+        // Send again phone to server
+        private class ConfigurePhoneForSendItAgainToServerTask extends AsyncTask<String, Integer, String>
+            {
+                private final Context context;
+                private Button        buttonSendAgain;
+
+                public ConfigurePhoneForSendItAgainToServerTask(Context context)
+                    {
+                        super();
+                        this.context = context;
+                        buttonSendAgain = (Button) findViewById(R.controlActivity.buttonSendAgainPhoneToServer);
+                    }
+
+                @Override
+                protected void onPreExecute()
+                    {
+                        buttonSendAgain.setEnabled(false);
+                        super.onPreExecute();
+                    }
+
+                @Override
+                protected String doInBackground(String... arg0)
+                    {
+                        String messagge = "Flag send to server has been reseted for phone";
+
+                        RepositoryLocalWrite repo = RepositoryLocalSQLLite.getRepository(context);
+                        repo.markPhoneLikeNotSendedToServer();
+                        LOG.debug(messagge);
+
+                        return messagge;
+                    }
+
+                @Override
+                protected void onPostExecute(String result)
+                    {
+                        buttonSendAgain.setEnabled(true);
+                        Toast toast = Toast.makeText(this.context, result, Toast.LENGTH_SHORT);
+                        toast.show();
+
+                        TextView messaggioEsitoTask = (TextView) findViewById(R.controlActivity.labelMessage);
+                        messaggioEsitoTask.setText(result);
+
+                        super.onPostExecute(result);
+                    }
+            }// ConfigureDataForSendItAgainDataToServerTask Class
+        
 
         // Copy into local database old incoming/outgoing sms and call
         private class CopyOldDataIntoDatabaseForSendToServerTask extends AsyncTask<String, String, Integer>
@@ -471,7 +526,7 @@ public class ControlDataActivity extends Activity implements OnClickListener
                         Cursor cursor = Utils.getSmsAllCursor(context);
                         if ((cursor != null) && (cursor.getCount() > 0))
                             {
-                                Integer numSmsTot = new Integer(cursor.getCount());
+                                Integer numSmsTot = Integer.valueOf(cursor.getCount());
 
                                 publishProgress("Num sms recuperati = " + numSmsTot.toString());
                                 LOG.debug("Sono presenti {} SMS", numSmsTot);

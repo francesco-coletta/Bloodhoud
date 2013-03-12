@@ -295,6 +295,29 @@ public class RepositoryLocalSQLLite extends SQLiteOpenHelper implements Reposito
                         closeDb(db);
                     }
             }
+        
+        
+
+        @Override
+        public void markPhoneLikeNotSendedToServer()
+            {
+                SQLiteDatabase db = null;
+                try
+                    {
+                        db = openDbInWrite();
+                        ContentValues values = getContentValuesForUpdateLikeNotSendedToServer();
+                        db.update(TablePhone.TABLE_NAME, values, null, null);
+                        LOG.debug("Flag sended to server resetted for PHONE");
+                    }
+                catch (Exception e)
+                    {
+                        LOG.error("Problemi nel reset del flag di inviato al server: {}", e.getMessage());
+                    }
+                finally
+                    {
+                        closeDb(db);
+                    }
+            }
 
         @Override
         public void onCreate(SQLiteDatabase db)
