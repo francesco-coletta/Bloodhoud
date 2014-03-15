@@ -1,0 +1,6 @@
+[submodule "bloodhoudServer"]
+	path = bloodhoudServer
+	url = https://github.com/francesco-coletta/bloodhoudServer.git
+[submodule "bloodhoudClient"]
+	path = bloodhoudClient
+	url = https://github.com/francesco-coletta/bloodhoudClient.git
